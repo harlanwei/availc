@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 
 public class ParserTest {
     @Test
-    public void testParserWithADocument() throws IOException {
+    public void parseADocument() throws IOException {
         Map<String, Boolean[]> results = new HashMap<>();
         try (Parser p = new Parser(false)) {
             p.parse(results, new File("C:\\Users\\Vian\\Downloads\\test.html"));
