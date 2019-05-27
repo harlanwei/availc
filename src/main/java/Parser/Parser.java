@@ -16,7 +16,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -33,11 +32,7 @@ public class Parser implements Closeable {
     /**
      * This constructor should only be used for tests.
      */
-    private Parser() {
-        this(false);
-    }
-
-    private Parser(boolean startWithChromium) {
+    Parser(boolean startWithChromium) {
         if (startWithChromium) {
             // Disable Chrome Driver's output
             System.setProperty("webdriver.chrome.silentOutput", "true");
@@ -90,12 +85,12 @@ public class Parser implements Closeable {
             driver.quit();
     }
 
-    private void parse(Map<String, Boolean[]> map, String htmlString) {
+    void parse(Map<String, Boolean[]> map, String htmlString) {
         Document document = Jsoup.parse(htmlString);
         this.parse(map, document);
     }
 
-    private void parse(Map<String, Boolean[]> map, File file) throws IOException {
+    void parse(Map<String, Boolean[]> map, File file) throws IOException {
         Document document = Jsoup.parse(file, "utf-8");
         this.parse(map, document);
     }
@@ -120,14 +115,6 @@ public class Parser implements Closeable {
             }
             String classroomName = currentRow.get(0).text();
             map.put(classroomName, available);
-        }
-    }
-
-    public static void main(String[] args) throws IOException {
-        Map<String, Boolean[]> results = new HashMap<>();
-        try (Parser p = new Parser()) {
-            p.parse(results, new File("C:\\Users\\Vian\\Downloads\\test.html"));
-            System.out.println(results.get("J4-101")[0]);
         }
     }
 }
