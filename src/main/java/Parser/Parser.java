@@ -16,6 +16,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -30,6 +31,7 @@ import java.util.logging.Level;
  */
 public class Parser implements Closeable {
     private WebDriver driver;
+    private Map<String, Boolean[]> availibility;
 
     /**
      * This constructor should only be used for tests.
@@ -83,6 +85,8 @@ public class Parser implements Closeable {
         // Wait for it to finish loading
         new WebDriverWait(driver, 10, 200)
                 .until(ExpectedConditions.urlToBe("https://10-200-21-61-7001.e.buaa.edu.cn/ieas2.1/welcome"));
+
+        this.availibility = new HashMap<>();
     }
 
     @Override
@@ -102,7 +106,7 @@ public class Parser implements Closeable {
     }
 
     /**
-     * Parse a HTML from empty classroom query page.
+     * Parse the HTML of the empty classroom query page.
      *
      * @implNote The page usually has a table, the first two rows of which are the headers, and proceeding rows
      * contains the information we really cares about. The first cell of each row is the classroom's name; all
