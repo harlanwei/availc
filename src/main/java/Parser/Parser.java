@@ -68,19 +68,26 @@ public class Parser implements Closeable {
         driver.findElement(By.id("user_password")).sendKeys(password);
         driver.findElement(By.xpath("//*[@id=\"login-form\"]/div[3]/input")).click();
 
-        // Do not act until login finished
-        new WebDriverWait(driver, 1).until(ExpectedConditions.urlToBe("https://e.buaa.edu.cn/"));
+
+        // Do not act until login finished. the {@code timeOutInSeconds} in this call means that after
+        // this many seconds later, if the expectation is still unfulfilled, then the function should
+        // just throw a {@code TimeoutException}. The {@code sleepInMillis} indicates how often should
+        // the expectation be checked. The default value is 500, but here it is changed to speed up the
+        // whole process. Likewise for the {@code WebDriverWait} call below.
+        new WebDriverWait(driver, 10, 200)
+                .until(ExpectedConditions.urlToBe("https://e.buaa.edu.cn/"));
 
         // Get token to the platform
         driver.get("https://10-200-21-61-7001.e.buaa.edu.cn/ieas2.1/");
         driver.findElement(By.xpath("//*[@id=\"notice\"]/div[2]/div[1]/p[2]/input")).click();
-        new WebDriverWait(driver, 1)
+        new WebDriverWait(driver, 10, 200)
                 .until(ExpectedConditions.urlToBe("https://10-200-21-61-7001.e.buaa.edu.cn/ieas2.1/welcome"));
     }
 
     @Override
     public void close() {
-        driver.quit();
+        if (this.driver != null)
+            driver.quit();
     }
 
     private void parse(Map<String, Boolean[]> map, String htmlString) {
@@ -118,7 +125,9 @@ public class Parser implements Closeable {
 
     public static void main(String[] args) throws IOException {
         Map<String, Boolean[]> results = new HashMap<>();
-        new Parser().parse(results, new File("C:\\Users\\Vian\\Downloads\\test.html"));
-        System.out.println(results.get("J4-101")[0]);
+        try (Parser p = new Parser()) {
+            p.parse(results, new File("C:\\Users\\Vian\\Downloads\\test.html"));
+            System.out.println(results.get("J4-101")[0]);
+        }
     }
 }
