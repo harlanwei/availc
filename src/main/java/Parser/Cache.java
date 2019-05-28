@@ -1,13 +1,30 @@
 package Parser;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * It is expensive to do a full parse (on a top tier MacBook Pro, it takes nearly 7 seconds to start Chromium, finish
+ * the login operation and go through the parsing process. In places where the network condition gets much worse, it
+ * could take a lot more time). Without a proper cache, the program will have to launch the parser every time it starts.
+ * With a parser, however, we would easily get previous parse results and speed up the program by ~7000%.
+ *
+ * @implNote {@code Cache} is implemented with JSON. There might be some more effective methods to cache the objects,
+ * but these are left for future explorations. As for now, using JSON is fast enough.
+ */
 class Cache {
-    private static String DEFAULT_CACHE_LOCATION = "/cache.json";
+    /**
+     * {@code true} if the cache has not been written onto the disk yet after a {@code add} operation.
+     */
+    private boolean isDirty = false;
+
+    private final static String DEFAULT_CACHE_LOCATION = System.getProperty("user.dir") + "/cache.json";
 
     private Map<CachedRow, Boolean[]> cache = new HashMap<>();
 
@@ -15,14 +32,15 @@ class Cache {
         try {
             this.readFromDefaultLocation();
         } catch (IOException e) {
-            // A temporary solution
-            System.exit(-1);
+            // It's almost impossible to have {@code IOException} thrown here,
+            // so we just do nothing.
         }
     }
 
-    void addToCache(String classroom, int start, int end, Boolean[] result) {
+    void add(String classroom, int start, int end, Boolean[] result) {
         CachedRow cache = new CachedRow(classroom, start, end);
         this.cache.put(cache, result);
+        isDirty = true;
     }
 
     /**
@@ -34,34 +52,61 @@ class Cache {
     }
 
     private void readFromDefaultLocation() throws IOException {
-        File file = Resources.Loader.getResource(DEFAULT_CACHE_LOCATION, true);
-        FileReader fileReader = new FileReader(file);
-        readFrom(fileReader);
+        File file = new File(DEFAULT_CACHE_LOCATION);
+
+        // Create such a file if does not exist yet.
+        file.createNewFile();
+
+        try (FileReader fileReader = new FileReader(file)) {
+            readFrom(fileReader);
+        }
     }
 
-    @SuppressWarnings("unchecked")
-    void readFrom(Reader reader) {
-        this.cache = new Gson().fromJson(reader, Map.class);
+    /**
+     * Read cache from a specific writer. This method is marked as `private`, but can be
+     * modified to package access by future extensions.
+     */
+    private void readFrom(Reader reader) throws IOException {
+        // Write current cache to the disk in case the read operation overwrite current
+        // caches.
+        if (isDirty) writeToDefaultLocation();
+
+        // See the implementation notes of `CachedRow::toString`.
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(CachedRow.class, new CachedRowDeserializer());
+
+        Type CacheType = new TypeToken<HashMap<CachedRow, Boolean[]>>() {
+        }.getType();
+        Map<CachedRow, Boolean[]> cache = gsonBuilder.create().fromJson(reader, CacheType);
+
+        // When the cache file does not exist yet (for example, when the user launches the program
+        // for the first time), GSON will return `null`.
+        if (cache != null) this.cache = cache;
     }
 
-    void exportToDefaultLocation() throws IOException {
-        try {
-            File file = Resources.Loader.getResource(DEFAULT_CACHE_LOCATION, true);
-            PrintWriter printWriter = new PrintWriter(file);
-            exportTo(printWriter);
-        } catch (FileNotFoundException e) {
-            // It's almost impossible to have {@code FileNotFoundException}
-            // thrown here, so we just do nothing.
+    void writeToDefaultLocation() throws IOException {
+        // If the cache is not dirty, it's unnecessary to go through the whole write operation.
+        if (!isDirty) return;
+
+        File file = new File(DEFAULT_CACHE_LOCATION);
+
+        // Create such a file if does not exist yet.
+        file.createNewFile();
+
+        try (PrintWriter printWriter = new PrintWriter(file)) {
+            writeTo(printWriter);
         }
     }
 
     /**
      * Export cache to a specific writer. Notice that it won't update the cache
      * on the user's local disk, since the constructor only read from the default
-     * location.
+     * location. This method is marked as `private`, but can be modified to package
+     * access by future extensions.
      */
-    void exportTo(Writer writer) throws IOException {
+    private void writeTo(Writer writer) throws IOException {
         writer.write(new Gson().toJson(cache));
+        this.isDirty = false;
     }
 
     // todo Clear previous caches

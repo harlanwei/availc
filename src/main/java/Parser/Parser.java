@@ -7,6 +7,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -14,7 +15,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -33,36 +33,60 @@ import java.util.logging.Level;
 public class Parser implements Closeable {
     private WebDriver driver;
 
+    private String username;
+    private String password;
+
+    private int pageSize;
+
     private Cache cache = new Cache();
 
     /**
-     * This constructor should only be used for tests.
+     * Start a Chromium browser in headless mode.
+     * @throws IllegalStateException When the {@code Parser} instance needs to go online to retrieve
+     * more information but no username or password is provided.
      */
-    Parser(boolean startWithChromium) {
-        if (startWithChromium) {
-            // Disable Chrome Driver's output
-            System.setProperty("webdriver.chrome.silentOutput", "true");
+    private void startChromium() {
+        if (this.driver != null) return;
+        if (this.username == null || this.password == null)
+            throw new IllegalStateException("No username or password provided");
 
-            // Disable Selenium's output
-            java.util.logging.Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
+        // Disable Chrome Driver's output
+        System.setProperty("webdriver.chrome.silentOutput", "true");
 
-            // Set Chrome Driver's location
-            final String DEFAULT_CHROME_DRIVER_PATH = "C:\\Users\\Vian\\Downloads\\chromedriver.exe";
-            System.setProperty("webdriver.chrome.driver", DEFAULT_CHROME_DRIVER_PATH);
+        // Disable Selenium's output
+        java.util.logging.Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
 
-            // Start Chrome in the headless mode and disable all extensions to speed up the loading process
-            ChromeOptions options = new ChromeOptions().addArguments(
-                    "--headless", "--disable-gpu", "--disable-extensions", "-incognito"
-            );
+        // Set Chrome Driver's location
+        final String DEFAULT_CHROME_DRIVER_PATH = "/Users/viannalight/Downloads/chromedriver";
+        System.setProperty("webdriver.chrome.driver", DEFAULT_CHROME_DRIVER_PATH);
 
-            this.driver = new ChromeDriver(options);
-        }
+        // Start Chrome in the headless mode and disable all extensions to speed up the loading process
+        ChromeOptions options = new ChromeOptions().addArguments(
+                "--headless", "--disable-gpu", "--disable-extensions", "-incognito"
+        );
+
+        this.driver = new ChromeDriver(options);
+
+        login();
     }
 
-    public Parser(@NotNull String username, @NotNull String password) {
-        // construct Chromium instance
-        this(true);
+    /**
+     * A Parser that only reads disk caches.
+     */
+    public Parser() {}
 
+    /**
+     * A parser that might go online to retrieve more information.
+     */
+    public Parser(@NotNull String username, @NotNull String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    /**
+     * Login with the provided username and password by mimicking user actions.
+     */
+    private void login() {
         // ======================= Mimic a user logging in =======================
         driver.get("https://e.buaa.edu.cn/users/sign_in");
         driver.findElement(By.id("user_login")).sendKeys(username);
@@ -92,17 +116,15 @@ public class Parser implements Closeable {
     @Override
     public void close() {
         if (this.driver != null)
+            // Close the Chromium instance.
             driver.quit();
-    }
 
-    void parse(Map<String, Boolean[]> map, String htmlString) {
-        Document document = Jsoup.parse(htmlString);
-        this.parse(map, document);
-    }
-
-    void parse(Map<String, Boolean[]> map, File file) throws IOException {
-        Document document = Jsoup.parse(file, "utf-8");
-        this.parse(map, document);
+        // Write caches onto the disk.
+        try {
+            this.cache.writeToDefaultLocation();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -112,7 +134,7 @@ public class Parser implements Closeable {
      */
     public Map<String, Boolean[]> isAvailable(Set<String> classrooms) {
         int currentWeek = getCurrentWeek();
-        return isAvaiable(classrooms, currentWeek, currentWeek);
+        return isAvailable(classrooms, currentWeek, currentWeek);
     }
 
     /**
@@ -124,7 +146,7 @@ public class Parser implements Closeable {
      * @throws IllegalArgumentException When {@code start} or {@code end} is out of the
      *                                  range of [1, 18]; or when {@code start > end}.
      */
-    public Map<String, Boolean[]> isAvaiable(Set<String> classrooms, int start, int end) {
+    public Map<String, Boolean[]> isAvailable(Set<String> classrooms, int start, int end) {
         Map<String, Boolean[]> results = new HashMap<>();
         if (classrooms == null) return results;
 
@@ -137,45 +159,75 @@ public class Parser implements Closeable {
             throw new IllegalArgumentException("`start` can't be later than `end`.");
 
         Params params = Params.getAll();
-
-        // The {@code pageSize} parameter is usually useless, but for the purpose
-        // of extensibility, we still place it here.
-        final int pageSize = params.pageSize;
-
-        final Map<String, Row> rooms = params.rooms;
+        this.pageSize = params.pageSize;
+        final Map<String, Room> rooms = params.rooms;
 
         classrooms
                 .stream()
+                .map(String::toLowerCase)
                 .map(rooms::get)
                 .sorted()
-                .forEach(row -> results.put(row.name, query(row, start, end)));
+                .forEach(room -> results.put(room.name, query(room, start, end)));
 
         return results;
     }
 
-    // todo
-    private Boolean[] query(@NotNull Row row, int start, int end) {
-        Boolean[] result = cache.getCached(row.name, start, end);
+    /**
+     * The {@code query} method first checks if the information needed is stored on the disk. If so, it will just return
+     * the information stored in the cache. Otherwise, try to parse the web page, and store the results into the cache.
+     */
+    private Boolean[] query(@NotNull Room room, int start, int end) {
+        Boolean[] result = cache.getCached(room.name, start, end);
         if (result != null) return result;
 
-        Map<String, Boolean[]> results = parseAll(row.queryParams);
+        Map<String, Boolean[]> results = parseAll(room.page, start, end);
         for (String key : results.keySet()) {
-            cache.addToCache(key, start, end, results.get(key));
+            cache.add(key, start, end, results.get(key));
         }
-        return results.get(row.name);
+        return results.get(room.name);
     }
 
-    private Map<String, Boolean[]> parseAll(RoomQueryParams queryParams) {
-        Map<String, Boolean[]> parseResults = new HashMap<>();
+    private Map<String, Boolean[]> parseAll(String page, int start, int end) {
+        Page params = Params.getPageParams(page);
+        List<Room> roomsToQuery = Params.getRoomsInPage(page);
 
+        this.startChromium();
 
+        // The empty classroom page is somehow required to be retrieved with a `POST` request. While Selenium does
+        // not offer such interfaces, we, however, do have the access to the browser's console. Here we just send
+        // a `POST` request with JavaScript.
+        String postParams = String.format(
+                "pageNo=%d&pageSize=%d&pageCount=%d&pageXnxq=%s&pageZc1=%d&pageZc2=%d&pageXiaoqu=%d&pageLhdm=%s&pageCddm=",
+                params.pageNo,
+                this.pageSize,
+                params.pageCount,
+                "2018-20192",
+                start, end,
+                params.pageXiaoqu,
+                params.pageLhdm
+        );
 
-        return parseResults;
+        // When async the `POST` request is finished, we execute `alert`, which in turn serves as a notification
+        // mechanism telling Selenium that the script execution is finished.
+        String script = String.format(
+                "var xhr=new XMLHttpRequest();xhr.open('POST','https://10-200-21-61-7001.e.buaa.edu.cn/ieas2.1/kjscx/queryKjs/',true);xhr.setRequestHeader('Content-type','application/x-www-form-urlencoded');xhr.onload=function(){document.getElementsByTagName('body')[0].innerHTML=xhr.responseText;alert(' ')};xhr.send('%s')",
+                postParams
+        );
+
+        JavascriptExecutor console = (JavascriptExecutor) driver;
+        console.executeScript(script);
+        new WebDriverWait(driver, 5, 200).until(ExpectedConditions.alertIsPresent());
+
+        // The `alert` window will not be closed automatically by Selenium, so we have to do it ourselves.
+        driver.switchTo().alert().dismiss();
+
+        Document document = Jsoup.parse(driver.getPageSource());
+        return parse(roomsToQuery, document);
     }
 
     // todo
     private int getCurrentWeek() {
-        return 0;
+        return 14;
     }
 
     /**
@@ -186,7 +238,7 @@ public class Parser implements Closeable {
      * the other cells indicates whether at a specific time it is available. Each cell should contain a {@code div}
      * element whose class containing {@code kjs_icon} tells it is free.
      */
-    private void parse(@NotNull Map<String, Boolean[]> map, @NotNull Document document) {
+    private Map<String, Boolean[]> parse(@NotNull List<Room> rooms, @NotNull Document document) {
         Elements table = document
                 .select("body > div > div > div.list > table > tbody")
                 .first()
@@ -194,11 +246,29 @@ public class Parser implements Closeable {
 
         // Convert `Elements` to a `List<Element>` so that it will be easier to ignore the
         // first two rows.
-        List<Element> rows = Lists.newArrayList(table.iterator());
+        List<Element> rows = Lists.newArrayList(table);
 
-        // todo
+        Map<String, Boolean[]> result = new HashMap<>();
+        for (Room room : rooms) {
+            result.put(room.name, parseRow(room.index, rows));
+        }
+        return result;
     }
 
+    /**
+     * Given all the rows and the index of the a classroom, parse the specific row to get
+     * the availibility of the classroom this week.
+     */
+    private Boolean[] parseRow(int rowIndex, @NotNull List<Element> rows) {
+        // Add 2 because the first two rows are useless.
+        List<Element> currentRow = Lists.newArrayList(rows.get(rowIndex + 2).children());
+        return parseRow(currentRow);
+    }
+
+    /**
+     * Given a row, parse this row to get all the information available about this classroom
+     * this week.
+     */
     private Boolean[] parseRow(@NotNull List<Element> row) {
         // 6 ranges: [1, 2], [3, 4, 5], [6, 7], [8, 9, 10], [11, 12], [13, 14] and 7 days
         final int ROW_CAPACITY = 6 * 7;
@@ -208,11 +278,5 @@ public class Parser implements Closeable {
             result[i - 1] = row.get(i).child(0).hasClass("kjs_icon");
         }
         return result;
-    }
-
-    private Boolean[] parseRow(int rowIndex, @NotNull List<Element> rows) {
-        // Add 2 because the first two rows are useless.
-        List<Element> currentRow = Lists.newArrayList(rows.get(rowIndex + 2).children().iterator());
-        return parseRow(currentRow);
     }
 }

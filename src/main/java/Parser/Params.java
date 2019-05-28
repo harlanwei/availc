@@ -1,14 +1,11 @@
 package Parser;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.GsonBuilder;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.stream.Collectors;
 
 class Params {
     private static Params _instance;
@@ -19,27 +16,28 @@ class Params {
      */
     final int pageSize;
 
+    private final Map<String, Page> pages;
+
     /**
      * @implNote {@code rooms} is public here because {@code Params} will never
      * be extended and the property itself is {@code final}.
      */
-    final Map<String, Row> rooms;
+    final Map<String, Room> rooms;
 
-    private Params(int pageSize, Map<String, Row> rooms) {
+    Params(int pageSize, Map<String, Page> pages, Map<String, Room> rooms) {
         this.pageSize = pageSize;
+        this.pages = pages;
         this.rooms = rooms;
     }
 
     private static void initParams() {
         try {
-            File file = Resources.Loader.getResource("/info.json", false);
+            File file = Resources.Loader.getResource("/info.json");
 
-            try (Scanner scanner = new Scanner(file)) {
-                // There's only one line in the JSON file.
-                String json = scanner.nextLine();
-
-                JsonObject jsonObject = (JsonObject) new JsonParser().parse(json);
-                _instance = new Gson().fromJson(jsonObject, Params.class);
+            try (Reader reader = new FileReader(file)) {
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.registerTypeAdapter(Params.class, new ParamDeserializer());
+                _instance = gsonBuilder.create().fromJson(reader, Params.class);
             } catch (FileNotFoundException e) {
                 // It's almost impossible to have {@code FileNotFoundException}
                 // thrown here, so we just do nothing.
@@ -54,5 +52,19 @@ class Params {
     static Params getAll() {
         if (_instance == null) initParams();
         return _instance;
+    }
+
+    static Page getPageParams(String page) {
+        if (_instance == null) initParams();
+        return _instance.pages.get(page.toLowerCase());
+    }
+
+    static List<Room> getRoomsInPage(String page) {
+        if (_instance == null) initParams();
+        return _instance.rooms
+                .values()
+                .stream()
+                .filter(el -> el.page.equals(page.toLowerCase()))
+                .collect(Collectors.toList());
     }
 }

@@ -2,19 +2,19 @@ package Parser;
 
 import org.jetbrains.annotations.NotNull;
 
-class Row implements Comparable<Row> {
+class Room implements Comparable<Room> {
     final String name;
     final int index;
-    final RoomQueryParams queryParams;
+    final String page;
 
     /**
      * @implNote A private constructor so it won't be extended. The content of this function is
      * merely here to suppress the warnings about the final fields not being initialized.
      */
-    private Row(String name, int index, RoomQueryParams queryParams) {
+    private Room(String name, String page, int index) {
         this.name = name;
+        this.page = page;
         this.index = index;
-        this.queryParams = queryParams;
     }
 
     /**
@@ -24,23 +24,26 @@ class Row implements Comparable<Row> {
      * drastically with that of the {@code equals} method.
      */
     @Override
-    public int compareTo(@NotNull Row rhs) {
-        int queryParamComparisonResult = queryParams.compareTo(rhs.queryParams);
-        if (queryParamComparisonResult != 0) return queryParamComparisonResult;
-
-        return Integer.compare(index, rhs.index);
+    public int compareTo(@NotNull Room rhs) {
+        int buildingComparisonResult = page.compareTo(rhs.page);
+        return buildingComparisonResult == 0
+                ? Integer.compare(index, rhs.index)
+                : buildingComparisonResult;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Row that = (Row) o;
+        Room that = (Room) o;
+
+        // The only thing two rooms might differ from each other is their names.
         return name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
+        // See `Room::equals` for why.
         return name.hashCode();
     }
 }
