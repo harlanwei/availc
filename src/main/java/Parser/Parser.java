@@ -16,10 +16,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -41,11 +38,14 @@ public class Parser implements Closeable {
     private Cache cache = new Cache();
 
     /**
-     * Start a Chromium browser in headless mode.
+     * Start a Chromium browser (optionally in headless mode).
+     *
+     * @param headless Starting Chromium in headless mode means that the browser interface will be
+     *                 hidden to the end user. Running non-headlessly would be quite a fun, though.
      * @throws IllegalStateException When the {@code Parser} instance needs to go online to retrieve
-     * more information but no username or password is provided.
+     *                               more information but no username or password is provided.
      */
-    private void startChromium() {
+    private void startChromium(boolean headless) {
         if (this.driver != null) return;
         if (this.username == null || this.password == null)
             throw new IllegalStateException("No username or password provided");
@@ -57,13 +57,18 @@ public class Parser implements Closeable {
         java.util.logging.Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
 
         // Set Chrome Driver's location
-        final String DEFAULT_CHROME_DRIVER_PATH = "/Users/viannalight/Downloads/chromedriver";
+        final String DEFAULT_CHROME_DRIVER_PATH = System.getProperty("user.dir") + "/chromedriver";
         System.setProperty("webdriver.chrome.driver", DEFAULT_CHROME_DRIVER_PATH);
 
         // Start Chrome in the headless mode and disable all extensions to speed up the loading process
         ChromeOptions options = new ChromeOptions().addArguments(
-                "--headless", "--disable-gpu", "--disable-extensions", "-incognito"
+                "--disable-gpu", "--disable-extensions", "-incognito"
         );
+
+        if (headless) options.addArguments("--headless");
+
+        final String DEFAULT_CHROME_BINARY_PATH = System.getProperty("user.dir") + "/Chromium.app/Contents/MacOS/Chromium";
+        options.setBinary(DEFAULT_CHROME_BINARY_PATH);
 
         this.driver = new ChromeDriver(options);
 
@@ -73,7 +78,8 @@ public class Parser implements Closeable {
     /**
      * A Parser that only reads disk caches.
      */
-    public Parser() {}
+    public Parser() {
+    }
 
     /**
      * A parser that might go online to retrieve more information.
@@ -191,7 +197,7 @@ public class Parser implements Closeable {
         Page params = Params.getPageParams(page);
         List<Room> roomsToQuery = Params.getRoomsInPage(page);
 
-        this.startChromium();
+        this.startChromium(true);
 
         // The empty classroom page is somehow required to be retrieved with a `POST` request. While Selenium does
         // not offer such interfaces, we, however, do have the access to the browser's console. Here we just send
@@ -278,5 +284,19 @@ public class Parser implements Closeable {
             result[i - 1] = row.get(i).child(0).hasClass("kjs_icon");
         }
         return result;
+    }
+
+    /**
+     * Used as a temporary test method. DO NOT CALL THIS METHOD.
+     */
+    public static void main(String[] args) {
+        Set<String> s = new HashSet<>();
+        s.add("j4-101");
+        System.out.println("Logging in as " + args[0]);
+        try (Parser p = new Parser(args[0], args[1])) {
+            System.out.println(
+                    "J4-101 is free on Monday [1, 2] this week: " + p.isAvailable(s, 1, 2).get("j4-101")[0]
+            );
+        }
     }
 }

@@ -17,12 +17,10 @@ public class ParamDeserializer implements JsonDeserializer<Params> {
         int pageSize = object.get("pageSize").getAsInt();
 
         Type buildingType = new TypeToken<HashMap<String, Page>>() {}.getType();
-        JsonElement building = object.get("building");
-        Map<String, Page> buildings = context.deserialize(building, buildingType);
+        Map<String, Page> buildings = context.deserialize(object.get("pages"), buildingType);
 
         Type paramsType = new TypeToken<HashMap<String, Room>>() {}.getType();
-        JsonElement params = object.get("params");
-        Map<String, Room> rooms = context.deserialize(params, paramsType);
+        Map<String, Room> rooms = context.deserialize(object.get("rooms"), paramsType);
 
         return new Params(pageSize, buildings, rooms);
     }

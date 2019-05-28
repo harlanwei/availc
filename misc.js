@@ -1,7 +1,7 @@
 let info = {
   pageSize: 20,
-  params: {},
-  building: {
+  rooms: {},
+  pages: {
     x11: {
       pageNo: 1,
       pageCount: 2,
@@ -125,10 +125,10 @@ let info = {
   '1305',
 ].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
+    (info.rooms[el.toLowerCase()] = {
       name: el.toLowerCase(),
       index: ind,
-      building: 'x11',
+      page: 'x11',
     }),
 )
 ;[
@@ -145,10 +145,10 @@ let info = {
   '1214',
 ].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
+    (info.rooms[el.toLowerCase()] = {
       name: el.toLowerCase(),
       index: ind,
-      building: 'x12',
+      page: 'x12',
     }),
 )
 ;[
@@ -172,18 +172,18 @@ let info = {
   '3405',
 ].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
+    (info.rooms[el.toLowerCase()] = {
       name: el.toLowerCase(),
-      building: 'x31',
+      page: 'x31',
       index: ind,
     }),
 )
 ;['3302', '3104', '3108', '3407', '3115', '3105'].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
+    (info.rooms[el.toLowerCase()] = {
       name: el.toLowerCase(),
       index: ind,
-      building: 'x32',
+      page: 'x32',
     }),
 )
 ;[
@@ -198,10 +198,10 @@ let info = {
   '4409',
 ].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
+    (info.rooms[el.toLowerCase()] = {
       name: el.toLowerCase(),
       index: ind,
-      building: 'x41',
+      page: 'x41',
     }),
 )
 ;[
@@ -227,18 +227,18 @@ let info = {
   'zn302',
 ].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
+    (info.rooms[el.toLowerCase()] = {
       name: el.toLowerCase(),
       index: ind,
-      building: 'x73',
+      page: 'x73',
     }),
 )
 ;['zn303', 'zn305', 'zb107', 'zb101', 'zb103', 'zb105', 'z125', 'z119'].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
+    (info.rooms[el.toLowerCase()] = {
       name: el.toLowerCase(),
       index: ind,
-      building: 'x74',
+      page: 'x74',
     }),
 )
 ;[
@@ -257,80 +257,80 @@ let info = {
   'd609',
 ].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
+    (info.rooms[el.toLowerCase()] = {
       name: el.toLowerCase(),
       index: ind + 7,
-      building: 'x81',
+      page: 'x81',
     }),
 )
 
-info.params['d611'] = {
+info.rooms['d611'] = {
   name: 'd611',
   index: 0,
-  building: 'x82',
+  page: 'x82',
 }
 
-info.params['d617'] = {
+info.rooms['d617'] = {
   name: 'd617',
-  building: 'x82',
+  page: 'x82',
   index: 1,
 }
 
-info.params['d619'] = {
+info.rooms['d619'] = {
   name: 'd619',
-  building: 'x82',
+  page: 'x82',
   index: 1,
 }
 ;['b204', 'd611', 'd609'].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
-      building: 'x82',
+    (info.rooms[el.toLowerCase()] = {
+      page: 'x82',
       name: el.toLowerCase(),
       index: ind + 4,
     }),
 )
 ;['d601', 'f328', 'f327', 'f332', 'f333', 'f330', 'd408', 'c403'].forEach(
   (el, ind) =>
-    (info.params[el.toLowerCase()] = {
-      building: 'x82',
+    (info.rooms[el.toLowerCase()] = {
+      page: 'x82',
       name: el.toLowerCase(),
       index: ind + 8,
     }),
 )
 
-info.params['d110'] = {
-  building: 'x82',
+info.rooms['d110'] = {
+  page: 'x82',
   name: 'd110',
   index: 18,
 }
 
-info.params['d111'] = {
-  building: 'x82',
+info.rooms['d111'] = {
+  page: 'x82',
   name: 'd111',
   index: 18,
 }
 
-info.params['b319'] = {
-  building: 'x82',
+info.rooms['b319'] = {
+  page: 'x82',
   name: 'd319',
   index: 19,
 }
 
-info.params['d105'] = {
-  building: 'x83',
+info.rooms['d105'] = {
+  page: 'x83',
   name: 'd105',
   index: 0,
 }
 
-info.params['d106'] = {
-  building: 'x83',
+info.rooms['d106'] = {
+  page: 'x83',
   name: 'd106',
   index: 0,
 }
 ;['b307', 'b406', 'b404'].forEach(
   (el, ind) =>
-    (info.params[el] = {
-      building: 'x83',
+    (info.rooms[el] = {
+      page: 'x83',
       name: el.toLowerCase(),
       index: ind + 2,
     }),
@@ -358,8 +358,8 @@ info.params['d106'] = {
   'f213',
 ].forEach(
   (el, ind) =>
-    (info.params[el] = {
-      building: 'x84',
+    (info.rooms[el] = {
+      page: 'x84',
       name: el.toLowerCase(),
       index: ind,
     }),
@@ -379,56 +379,56 @@ info.params['d106'] = {
   'b406',
 ].forEach(
   (el, ind) =>
-    (info.params[el] = {
-      building: 'x85',
+    (info.rooms[el] = {
+      page: 'x85',
       name: el.toLowerCase(),
       index: ind,
     }),
 )
 ;['b403', 'd611', 'b508', 'b511'].forEach(
   (el, ind) =>
-    (info.params[el] = {
-      building: 'x85',
+    (info.rooms[el] = {
+      page: 'x85',
       name: el.toLowerCase(),
       index: ind + 13,
     }),
 )
 ;['b627', 'b628', 'b630'].forEach(
   el =>
-    (info.params[el] = {
-      building: 'x85',
+    (info.rooms[el] = {
+      page: 'x85',
       name: el.toLowerCase(),
       index: 17,
     }),
 )
 ;['f333', 'f334'].forEach(
   (el, ind) =>
-    (info.params[el] = {
-      building: 'x85',
+    (info.rooms[el] = {
+      page: 'x85',
       name: el.toLowerCase(),
       index: ind + 18,
     }),
 )
 ;['f332', 'c401', 'd408', 'd111', 'a618', 'f328'].forEach(
   (el, ind) =>
-    (info.params[el] = {
-      building: 'x86',
+    (info.rooms[el] = {
+      page: 'x86',
       name: el.toLowerCase(),
       index: ind,
     }),
 )
 ;['b506', 'a713'].forEach(
   (el, ind) =>
-    (info.params[el] = {
-      building: 'x86',
+    (info.rooms[el] = {
+      page: 'x86',
       name: el.toLowerCase(),
       index: ind + 9,
     }),
 )
 ;['b316', 'f441', 'f536', 'f535', 'f534', 'f532', 'f529'].forEach(
   (el, ind) =>
-    (info.params[el] = {
-      building: 'x86',
+    (info.rooms[el] = {
+      page: 'x86',
       name: el.toLowerCase(),
       index: ind + 13,
     }),
@@ -445,9 +445,9 @@ info.params['d106'] = {
   'b303',
 ].forEach(
   (el, ind) =>
-    (info.params[el] = {
+    (info.rooms[el] = {
       name: 'x87',
-      building: el.toLowerCase(),
+      page: el.toLowerCase(),
       index: ind,
     }),
 )
@@ -474,72 +474,72 @@ info.params['d106'] = {
   210,
 ].forEach(
   (el, ind) =>
-    (info.params[`j1-${el}`] = {
-      building: 's11',
+    (info.rooms[`j1-${el}`] = {
+      page: 's11',
       name: `j1-${el}`,
       index: ind,
     }),
 )
 ;['501', '509', '405', '406'].forEach(
   (el, ind) =>
-    (info.params[`j1-${el}`] = {
-      building: 's12',
+    (info.rooms[`j1-${el}`] = {
+      page: 's12',
       name: `j1-${el}`,
       index: ind,
     }),
 )
 ;[101, 102, 103, 104, 105, 106, 107, 201, 202].forEach(
   (el, ind) =>
-    (info.params[`j3-${el}`] = {
-      building: 's31',
+    (info.rooms[`j3-${el}`] = {
+      page: 's31',
       name: `j3-${el}`,
       index: ind + 1,
     }),
 )
 ;[205, 206].forEach(
   (el, ind) =>
-    (info.params[`j3-${el}`] = {
-      building: 's31',
+    (info.rooms[`j3-${el}`] = {
+      page: 's31',
       name: `j3-${el}`,
       index: ind + 11,
     }),
 )
 ;[210, 211, 212, 301, 302].forEach(
   (el, ind) =>
-    (info.params[`j3-${el}`] = {
-      building: 's31',
+    (info.rooms[`j3-${el}`] = {
+      page: 's31',
       name: `j3-${el}`,
       index: ind + 15,
     }),
 )
 ;[303, 304, 305, 306].forEach(
   (el, ind) =>
-    (info.params[`j3-${el}`] = {
-      building: 's32',
+    (info.rooms[`j3-${el}`] = {
+      page: 's32',
       name: `j3-${el}`,
       index: ind + 1,
     }),
 )
 ;[310, 311, 312, 401, 402].forEach(
   (el, ind) =>
-    (info.params[`j3-${el}`] = {
-      building: 's32',
+    (info.rooms[`j3-${el}`] = {
+      page: 's32',
       name: `j3-${el}`,
       index: ind + 7,
     }),
 )
 ;[405, 406].forEach(
   (el, ind) =>
-    (info.params[`j3-${el}`] = {
-      building: 's32',
+    (info.rooms[`j3-${el}`] = {
+      page: 's32',
       name: `j3-${el}`,
       index: ind + 13,
     }),
 )
 ;[410, 411, 412].forEach(
   (el, ind) =>
-    (info.params[`j3-${el}`] = {
-      building: 's32',
+    (info.rooms[`j3-${el}`] = {
+      page: 's32',
       name: `j3-${el}`,
       index: ind + 17,
     }),
@@ -567,22 +567,22 @@ info.params['d106'] = {
   402,
 ].forEach(
   (el, ind) =>
-    (info.params[`j4-${el}`] = {
-      building: 's41',
+    (info.rooms[`j4-${el}`] = {
+      page: 's41',
       name: `j4-${el}`,
       index: ind,
     }),
 )
 ;[403, 404, 406].forEach(
   (el, ind) =>
-    (info.params[`j4-${el}`] = {
-      building: 's42',
+    (info.rooms[`j4-${el}`] = {
+      page: 's42',
       name: `j4-${el}`,
       index: ind,
     }),
 )
 ;[102, 103, 105, 202, 205, 302, 305, 402, 405].forEach(el => {
-  delete info.params[`j4-${el}`]
+  delete info.rooms[`j4-${el}`]
 })
 ;[
   101,
@@ -607,16 +607,16 @@ info.params['d106'] = {
   306,
 ].forEach(
   (el, ind) =>
-    (info.params[`j5-${el}`] = {
-      building: 's51',
+    (info.rooms[`j5-${el}`] = {
+      page: 's51',
       name: `j5-${el}`,
       index: ind,
     }),
 )
 ;[308, 309, 403, 404, 405, 406, 408, 409].forEach(
   (el, ind) =>
-    (info.params[`j5-${el}`] = {
-      building: 's52',
+    (info.rooms[`j5-${el}`] = {
+      page: 's52',
       name: `j5-${el}`,
       index: ind,
     }),

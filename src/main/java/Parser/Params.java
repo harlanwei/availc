@@ -32,9 +32,10 @@ class Params {
 
     private static void initParams() {
         try {
-            File file = Resources.Loader.getResource("/info.json");
-
-            try (Reader reader = new FileReader(file)) {
+            try (
+                    InputStream fileStream = ResourceManagement.Loader.getResource("/info.json");
+                    Reader reader = new BufferedReader(new InputStreamReader(fileStream))
+            ) {
                 GsonBuilder gsonBuilder = new GsonBuilder();
                 gsonBuilder.registerTypeAdapter(Params.class, new ParamDeserializer());
                 _instance = gsonBuilder.create().fromJson(reader, Params.class);
