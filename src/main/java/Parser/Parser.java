@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 /**
@@ -31,7 +32,8 @@ import java.util.logging.Level;
  */
 public class Parser implements Closeable {
     private WebDriver driver;
-    private Map<String, Boolean[]> availibility;
+
+    private Cache cache = new Cache();
 
     /**
      * This constructor should only be used for tests.
@@ -57,7 +59,7 @@ public class Parser implements Closeable {
         }
     }
 
-    public Parser(String username, String password) {
+    public Parser(@NotNull String username, @NotNull String password) {
         // construct Chromium instance
         this(true);
 
@@ -85,8 +87,6 @@ public class Parser implements Closeable {
         // Wait for it to finish loading
         new WebDriverWait(driver, 10, 200)
                 .until(ExpectedConditions.urlToBe("https://10-200-21-61-7001.e.buaa.edu.cn/ieas2.1/welcome"));
-
-        this.availibility = new HashMap<>();
     }
 
     @Override
@@ -106,6 +106,79 @@ public class Parser implements Closeable {
     }
 
     /**
+     * @param classrooms A nullable set of rooms that needs to be queried.
+     * @return A map whose keys are the rooms' names, and the values are boolean arrays
+     * containing 42 values each representing a range.
+     */
+    public Map<String, Boolean[]> isAvailable(Set<String> classrooms) {
+        int currentWeek = getCurrentWeek();
+        return isAvaiable(classrooms, currentWeek, currentWeek);
+    }
+
+    /**
+     * @param classrooms A nullable set of rooms that needs to be queried.
+     * @param start      The starting week of the query in the range of [1, 18].
+     * @param end        The ending week of the query in the range of [1, 18].
+     * @return A map whose keys are the rooms' names, and the values are boolean arrays
+     * containing 42 values each representing a range.
+     * @throws IllegalArgumentException When {@code start} or {@code end} is out of the
+     *                                  range of [1, 18]; or when {@code start > end}.
+     */
+    public Map<String, Boolean[]> isAvaiable(Set<String> classrooms, int start, int end) {
+        Map<String, Boolean[]> results = new HashMap<>();
+        if (classrooms == null) return results;
+
+        if (start < 1 || start > 18 || end < 1 || end > 18)
+            throw new IllegalArgumentException(
+                    "The time arguments are out of the predefined range."
+            );
+
+        if (start > end)
+            throw new IllegalArgumentException("`start` can't be later than `end`.");
+
+        Params params = Params.getAll();
+
+        // The {@code pageSize} parameter is usually useless, but for the purpose
+        // of extensibility, we still place it here.
+        final int pageSize = params.pageSize;
+
+        final Map<String, Row> rooms = params.rooms;
+
+        classrooms
+                .stream()
+                .map(rooms::get)
+                .sorted()
+                .forEach(row -> results.put(row.name, query(row, start, end)));
+
+        return results;
+    }
+
+    // todo
+    private Boolean[] query(@NotNull Row row, int start, int end) {
+        Boolean[] result = cache.getCached(row.name, start, end);
+        if (result != null) return result;
+
+        Map<String, Boolean[]> results = parseAll(row.queryParams);
+        for (String key : results.keySet()) {
+            cache.addToCache(key, start, end, results.get(key));
+        }
+        return results.get(row.name);
+    }
+
+    private Map<String, Boolean[]> parseAll(RoomQueryParams queryParams) {
+        Map<String, Boolean[]> parseResults = new HashMap<>();
+
+
+
+        return parseResults;
+    }
+
+    // todo
+    private int getCurrentWeek() {
+        return 0;
+    }
+
+    /**
      * Parse the HTML of the empty classroom query page.
      *
      * @implNote The page usually has a table, the first two rows of which are the headers, and proceeding rows
@@ -114,24 +187,32 @@ public class Parser implements Closeable {
      * element whose class containing {@code kjs_icon} tells it is free.
      */
     private void parse(@NotNull Map<String, Boolean[]> map, @NotNull Document document) {
-        Elements table = document.select("body > div > div > div.list > table > tbody").first().children();
+        Elements table = document
+                .select("body > div > div > div.list > table > tbody")
+                .first()
+                .children();
 
         // Convert `Elements` to a `List<Element>` so that it will be easier to ignore the
         // first two rows.
         List<Element> rows = Lists.newArrayList(table.iterator());
 
+        // todo
+    }
+
+    private Boolean[] parseRow(@NotNull List<Element> row) {
         // 6 ranges: [1, 2], [3, 4, 5], [6, 7], [8, 9, 10], [11, 12], [13, 14] and 7 days
         final int ROW_CAPACITY = 6 * 7;
 
-        // Starts from 2 because the first two rows are useless.
-        for (int i = 2; i < rows.size(); ++i) {
-            List<Element> currentRow = Lists.newArrayList(rows.get(i).children().iterator());
-            Boolean[] available = new Boolean[ROW_CAPACITY];
-            for (int j = 1; j < currentRow.size(); ++j) {
-                available[j - 1] = currentRow.get(j).child(0).hasClass("kjs_icon");
-            }
-            String classroomName = currentRow.get(0).text();
-            map.put(classroomName, available);
+        Boolean[] result = new Boolean[ROW_CAPACITY];
+        for (int i = 1; i < row.size(); ++i) {
+            result[i - 1] = row.get(i).child(0).hasClass("kjs_icon");
         }
+        return result;
+    }
+
+    private Boolean[] parseRow(int rowIndex, @NotNull List<Element> rows) {
+        // Add 2 because the first two rows are useless.
+        List<Element> currentRow = Lists.newArrayList(rows.get(rowIndex + 2).children().iterator());
+        return parseRow(currentRow);
     }
 }
