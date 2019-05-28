@@ -257,7 +257,7 @@ public class Parser implements Closeable {
 
     /**
      * Given all the rows and the index of the a classroom, parse the specific row to get
-     * the availibility of the classroom this week.
+     * the availability of the classroom this week.
      */
     private Boolean[] parseRow(int rowIndex, @NotNull List<Element> rows) {
         // Add 2 because the first two rows are useless.

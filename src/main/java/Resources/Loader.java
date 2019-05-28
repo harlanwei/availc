@@ -6,6 +6,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 public class Loader {
+    /**
+     * Get resources from the {@code resources} folder. Note that this method only gets you the
+     * static resources. For dynamic resources such as the configuration files, please refer to
+     * the {@code Parser::Cache} class.
+     */
     public static File getResource(String filePath) throws IOException {
         try {
             URL url = Loader.class.getResource(filePath);
