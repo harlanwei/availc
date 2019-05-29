@@ -2,8 +2,6 @@ package Parser;
 
 import org.junit.Test;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -12,7 +10,7 @@ import static org.junit.Assert.*;
 
 public class ParserTest {
     @Test
-    public void parseWithoutUsernameOrPassword() throws IOException, URISyntaxException {
+    public void parseWithoutUsernameOrPassword() {
         try (Parser p = new Parser()) {
             Set<String> classrooms = new HashSet<>();
             classrooms.add("J4-101");
@@ -20,6 +18,15 @@ public class ParserTest {
             assertFalse(result.get("j4-101")[1]);
         } catch (IllegalStateException e) {
             // Expected
+        }
+    }
+
+    @Test
+    public void tryToGetRoomsInTheBuilding() {
+        try (Parser p = new Parser()) {
+            Set<String> classroom = p.getRoomsInTheBuilding("x1");
+            assertNotNull(classroom);
+            System.out.println(classroom);
         }
     }
 }

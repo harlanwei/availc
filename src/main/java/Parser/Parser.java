@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * DO NOT construct multiple parsers at the same time. See {@code implNote} for why.
@@ -30,12 +31,9 @@ import java.util.logging.Level;
  */
 public class Parser implements Closeable {
     private WebDriver driver;
-
     private String username;
     private String password;
-
     private int pageSize;
-
     private Cache cache = new Cache();
 
     private static String getChromeDriverPath() {
@@ -198,6 +196,35 @@ public class Parser implements Closeable {
                 .forEach(room -> results.put(room.name, query(room, start, end)));
 
         return results;
+    }
+
+    /**
+     * Get all the rooms in a building. It's weird to have this method in this class though,
+     * but the authors have decided not to expose the {@code Params} class to outside users.
+     *
+     * @param building The name of the building. The available options are: x1 (Xueyuanlu 1),
+     *                 x3 (Xueyuanlu 3), x4 (Xueyuanlu 4), x7 (Xueyuanlu Main Building), x8 (
+     *                 Xueyuanlu New Main Building), s1 (Shahe 1), s3 (Shahe 3), s4 (Shahe 5),
+     *                 and s5 (Shahe 5). Case incensitive.
+     * @return A set of strings each represents a room, which can be passed directly to the
+     * {@code isAvailable} method.
+     */
+    public Set<String> getRoomsInTheBuilding(String building) {
+        Params params = Params.getAll();
+        Set<String> result = new HashSet<>();
+        params.pages
+                .keySet()
+                .stream()
+                .filter(el -> el.startsWith(building.toLowerCase()))
+                .map(Params::getRoomsInPage)
+                .forEach(
+                        list -> result.addAll(list
+                                .stream()
+                                .map(el -> el.name)
+                                .collect(Collectors.toList())
+                        )
+                );
+        return result;
     }
 
     /**

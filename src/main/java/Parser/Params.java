@@ -11,16 +11,19 @@ class Params {
     private static Params _instance;
 
     /**
-     * @implNote {@code pageSize} is public here because {@code Params} will
-     * never be extended and the property itself is {@code final}.
+     * @implNote The maximum number of rooms on each page.
      */
     final int pageSize;
 
-    private final Map<String, Page> pages;
+    /**
+     * @implNote The key is the name of the page (e.g. s32), and the value is
+     * the {@code Page} object corresponding to that page.
+     */
+    final Map<String, Page> pages;
 
     /**
-     * @implNote {@code rooms} is public here because {@code Params} will never
-     * be extended and the property itself is {@code final}.
+     * @implNote The key is the name of the room (e.g. j4-101), and the value
+     * is the {@code Room} object corresponding to that room.
      */
     final Map<String, Room> rooms;
 
