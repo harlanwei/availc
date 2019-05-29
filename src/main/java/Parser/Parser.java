@@ -205,9 +205,9 @@ public class Parser implements Closeable {
      * @param building The name of the building. The available options are: x1 (Xueyuanlu 1),
      *                 x3 (Xueyuanlu 3), x4 (Xueyuanlu 4), x7 (Xueyuanlu Main Building), x8 (
      *                 Xueyuanlu New Main Building), s1 (Shahe 1), s3 (Shahe 3), s4 (Shahe 5),
-     *                 and s5 (Shahe 5). Case incensitive.
-     * @return A set of strings each represents a room, which can be passed directly to the
-     * {@code isAvailable} method.
+     *                 and s5 (Shahe 5). Case insensitive.
+     * @return A set of strings each representing a room, which can be passed directly to the
+     * {@code Parser::isAvailable} method.
      */
     public Set<String> getRoomsInTheBuilding(String building) {
         Params params = Params.getAll();
