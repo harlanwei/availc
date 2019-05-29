@@ -8,6 +8,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Platform;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -37,6 +38,26 @@ public class Parser implements Closeable {
 
     private Cache cache = new Cache();
 
+    private static String getChromeDriverPath() {
+        String osName = System.getProperty("os.name");
+        if (Platform.extractFromSysProperty(osName).is(Platform.WINDOWS)) {
+            return "/chromedriver.exe";
+        }
+        return "/chromedriver";
+    }
+
+    private static String getChromiumPath() {
+        String osName = System.getProperty("os.name");
+        Platform currentPlatform = Platform.extractFromSysProperty(osName);
+        if (currentPlatform.is(Platform.WINDOWS))
+            return "/chrome-win/chrome.exe";
+        if (currentPlatform.is(Platform.MAC))
+            return "/Chromium.app/Contents/MacOS/Chromium";
+
+        // Fall back to Linux
+        return "/chrome-linux/chrome";
+    }
+
     /**
      * Start a Chromium browser (optionally in headless mode).
      *
@@ -46,6 +67,9 @@ public class Parser implements Closeable {
      *                               more information but no username or password is provided.
      */
     private void startChromium(boolean headless) {
+        final String DEFAULT_CHROME_DRIVER_PATH = System.getProperty("user.dir") + getChromeDriverPath();
+        final String DEFAULT_CHROME_BINARY_PATH = System.getProperty("user.dir") + getChromiumPath();
+
         if (this.driver != null) return;
         if (this.username == null || this.password == null)
             throw new IllegalStateException("No username or password provided");
@@ -56,8 +80,7 @@ public class Parser implements Closeable {
         // Disable Selenium's output
         java.util.logging.Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
 
-        // Set Chrome Driver's location
-        final String DEFAULT_CHROME_DRIVER_PATH = System.getProperty("user.dir") + "/chromedriver";
+
         System.setProperty("webdriver.chrome.driver", DEFAULT_CHROME_DRIVER_PATH);
 
         // Start Chrome in the headless mode and disable all extensions to speed up the loading process
@@ -67,7 +90,6 @@ public class Parser implements Closeable {
 
         if (headless) options.addArguments("--headless");
 
-        final String DEFAULT_CHROME_BINARY_PATH = System.getProperty("user.dir") + "/Chromium.app/Contents/MacOS/Chromium";
         options.setBinary(DEFAULT_CHROME_BINARY_PATH);
 
         this.driver = new ChromeDriver(options);
@@ -197,7 +219,7 @@ public class Parser implements Closeable {
         Page params = Params.getPageParams(page);
         List<Room> roomsToQuery = Params.getRoomsInPage(page);
 
-        this.startChromium(true);
+        this.startChromium(false);
 
         // The empty classroom page is somehow required to be retrieved with a `POST` request. While Selenium does
         // not offer such interfaces, we, however, do have the access to the browser's console. Here we just send
