@@ -26,7 +26,7 @@ class Cache {
 
     private final static String DEFAULT_CACHE_LOCATION = System.getProperty("user.dir") + "/cache.json";
 
-    private Map<CachedRow, Boolean[]> cache = new HashMap<>();
+    private Map<CachedRow, boolean[]> cache = new HashMap<>();
 
     Cache() {
         try {
@@ -37,7 +37,7 @@ class Cache {
         }
     }
 
-    void add(String classroom, int start, int end, Boolean[] result) {
+    void add(String classroom, int start, int end, boolean[] result) {
         CachedRow cache = new CachedRow(classroom, start, end);
         this.cache.put(cache, result);
         isDirty = true;
@@ -47,7 +47,7 @@ class Cache {
      * @return A boolean array indicating whether the classroom is available on
      * a specific day, or {@code null} if it's not cached.
      */
-    Boolean[] getCached(String classroom, int start, int end) {
+    boolean[] getCached(String classroom, int start, int end) {
         return cache.get(new CachedRow(classroom, start, end));
     }
 
@@ -75,9 +75,9 @@ class Cache {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(CachedRow.class, new CachedRowDeserializer());
 
-        Type CacheType = new TypeToken<HashMap<CachedRow, Boolean[]>>() {
+        Type CacheType = new TypeToken<HashMap<CachedRow, boolean[]>>() {
         }.getType();
-        Map<CachedRow, Boolean[]> cache = gsonBuilder.create().fromJson(reader, CacheType);
+        Map<CachedRow, boolean[]> cache = gsonBuilder.create().fromJson(reader, CacheType);
 
         // When the cache file does not exist yet (for example, when the user launches the program
         // for the first time), GSON will return `null`.

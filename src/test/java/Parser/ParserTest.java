@@ -14,7 +14,7 @@ public class ParserTest {
         try (Parser p = new Parser()) {
             Set<String> classrooms = new HashSet<>();
             classrooms.add("J4-101");
-            Map<String, Boolean[]> result = p.isAvailable(classrooms);
+            Map<String, boolean[]> result = p.isAvailable(classrooms);
             assertFalse(result.get("j4-101")[1]);
         } catch (IllegalStateException e) {
             // Expected

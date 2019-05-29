@@ -30,11 +30,12 @@ import java.util.stream.Collectors;
  * Therefore, call {@code Parser::close} when your work with the parser is done.
  */
 public class Parser implements Closeable {
+    private Cache cache = new Cache();
     private WebDriver driver;
     private String username;
     private String password;
     private int pageSize;
-    private Cache cache = new Cache();
+    private boolean loggedIn = false;
 
     private static String getChromeDriverPath() {
         String osName = System.getProperty("os.name");
@@ -91,8 +92,6 @@ public class Parser implements Closeable {
         options.setBinary(DEFAULT_CHROME_BINARY_PATH);
 
         this.driver = new ChromeDriver(options);
-
-        login();
     }
 
     /**
@@ -113,6 +112,8 @@ public class Parser implements Closeable {
      * Login with the provided username and password by mimicking user actions.
      */
     private void login() {
+        if (loggedIn) return;
+
         // ======================= Mimic a user logging in =======================
         driver.get("https://e.buaa.edu.cn/users/sign_in");
         driver.findElement(By.id("user_login")).sendKeys(username);
@@ -137,6 +138,8 @@ public class Parser implements Closeable {
         // Wait for it to finish loading
         new WebDriverWait(driver, 10, 200)
                 .until(ExpectedConditions.urlToBe("https://10-200-21-61-7001.e.buaa.edu.cn/ieas2.1/welcome"));
+
+        this.loggedIn = true;
     }
 
     @Override
@@ -158,7 +161,7 @@ public class Parser implements Closeable {
      * @return A map whose keys are the rooms' names, and the values are boolean arrays
      * containing 42 values each representing a range.
      */
-    public Map<String, Boolean[]> isAvailable(Set<String> classrooms) {
+    public Map<String, boolean[]> isAvailable(Set<String> classrooms) {
         int currentWeek = getCurrentWeek();
         return isAvailable(classrooms, currentWeek, currentWeek);
     }
@@ -172,8 +175,8 @@ public class Parser implements Closeable {
      * @throws IllegalArgumentException When {@code start} or {@code end} is out of the
      *                                  range of [1, 18]; or when {@code start > end}.
      */
-    public Map<String, Boolean[]> isAvailable(Set<String> classrooms, int start, int end) {
-        Map<String, Boolean[]> results = new HashMap<>();
+    public Map<String, boolean[]> isAvailable(Set<String> classrooms, int start, int end) {
+        Map<String, boolean[]> results = new HashMap<>();
         if (classrooms == null) return results;
 
         if (start < 1 || start > 18 || end < 1 || end > 18)
@@ -231,22 +234,23 @@ public class Parser implements Closeable {
      * The {@code query} method first checks if the information needed is stored on the disk. If so, it will just return
      * the information stored in the cache. Otherwise, try to parse the web page, and store the results into the cache.
      */
-    private Boolean[] query(@NotNull Room room, int start, int end) {
-        Boolean[] result = cache.getCached(room.name, start, end);
+    private boolean[] query(@NotNull Room room, int start, int end) {
+        boolean[] result = cache.getCached(room.name, start, end);
         if (result != null) return result;
 
-        Map<String, Boolean[]> results = parseAll(room.page, start, end);
+        Map<String, boolean[]> results = parseAll(room.page, start, end);
         for (String key : results.keySet()) {
             cache.add(key, start, end, results.get(key));
         }
         return results.get(room.name);
     }
 
-    private Map<String, Boolean[]> parseAll(String page, int start, int end) {
+    private Map<String, boolean[]> parseAll(String page, int start, int end) {
         Page params = Params.getPageParams(page);
         List<Room> roomsToQuery = Params.getRoomsInPage(page);
 
         this.startChromium(false);
+        login();
 
         // The empty classroom page is somehow required to be retrieved with a `POST` request. While Selenium does
         // not offer such interfaces, we, however, do have the access to the browser's console. Here we just send
@@ -293,7 +297,7 @@ public class Parser implements Closeable {
      * the other cells indicates whether at a specific time it is available. Each cell should contain a {@code div}
      * element whose class containing {@code kjs_icon} tells it is free.
      */
-    private Map<String, Boolean[]> parse(@NotNull List<Room> rooms, @NotNull Document document) {
+    private Map<String, boolean[]> parse(@NotNull List<Room> rooms, @NotNull Document document) {
         Elements table = document
                 .select("body > div > div > div.list > table > tbody")
                 .first()
@@ -303,7 +307,7 @@ public class Parser implements Closeable {
         // first two rows.
         List<Element> rows = Lists.newArrayList(table);
 
-        Map<String, Boolean[]> result = new HashMap<>();
+        Map<String, boolean[]> result = new HashMap<>();
         for (Room room : rooms) {
             result.put(room.name, parseRow(room.index, rows));
         }
@@ -314,7 +318,7 @@ public class Parser implements Closeable {
      * Given all the rows and the index of the a classroom, parse the specific row to get
      * the availability of the classroom this week.
      */
-    private Boolean[] parseRow(int rowIndex, @NotNull List<Element> rows) {
+    private boolean[] parseRow(int rowIndex, @NotNull List<Element> rows) {
         // Add 2 because the first two rows are useless.
         List<Element> currentRow = Lists.newArrayList(rows.get(rowIndex + 2).children());
         return parseRow(currentRow);
@@ -324,11 +328,11 @@ public class Parser implements Closeable {
      * Given a row, parse this row to get all the information available about this classroom
      * this week.
      */
-    private Boolean[] parseRow(@NotNull List<Element> row) {
+    private boolean[] parseRow(@NotNull List<Element> row) {
         // 6 ranges: [1, 2], [3, 4, 5], [6, 7], [8, 9, 10], [11, 12], [13, 14] and 7 days
         final int ROW_CAPACITY = 6 * 7;
 
-        Boolean[] result = new Boolean[ROW_CAPACITY];
+        boolean[] result = new boolean[ROW_CAPACITY];
         for (int i = 1; i < row.size(); ++i) {
             result[i - 1] = row.get(i).child(0).hasClass("kjs_icon");
         }
