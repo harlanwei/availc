@@ -19,6 +19,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -79,7 +81,6 @@ public class Parser implements Closeable {
         // Disable Selenium's output
         java.util.logging.Logger.getLogger("org.openqa.selenium").setLevel(Level.OFF);
 
-
         System.setProperty("webdriver.chrome.driver", DEFAULT_CHROME_DRIVER_PATH);
 
         // Start Chrome in the headless mode and disable all extensions to speed up the loading process
@@ -113,6 +114,7 @@ public class Parser implements Closeable {
      */
     private void login() {
         if (loggedIn) return;
+        this.startChromium(false);
 
         // ======================= Mimic a user logging in =======================
         driver.get("https://e.buaa.edu.cn/users/sign_in");
@@ -249,7 +251,6 @@ public class Parser implements Closeable {
         Page params = Params.getPageParams(page);
         List<Room> roomsToQuery = Params.getRoomsInPage(page);
 
-        this.startChromium(false);
         login();
 
         // The empty classroom page is somehow required to be retrieved with a `POST` request. While Selenium does
@@ -260,7 +261,7 @@ public class Parser implements Closeable {
                 params.pageNo,
                 this.pageSize,
                 params.pageCount,
-                "2018-20192",
+                getCurrentSemester(),
                 start, end,
                 params.pageXiaoqu,
                 params.pageLhdm
@@ -284,9 +285,34 @@ public class Parser implements Closeable {
         return parse(roomsToQuery, document);
     }
 
-    // todo
+    /**
+     * @implNote We consider it to be the second semester if currently we are in between March and July (inclusive),
+     * and the first semester otherwise.
+     */
+    private String getCurrentSemester() {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        if (month > 2 && month < 8)
+            return String.format("%d-%d2", year - 1, year);
+        return String.format("%d-%d1", year, year + 1);
+    }
+
+    /**
+     * Calling this function is relatively expensive, so if you need the result multiple times, consider
+     * store it as a global variable.
+     */
     private int getCurrentWeek() {
-        return 14;
+        login();
+
+        driver.get("https://jiaowu.e.buaa.edu.cn/bhjwc2.0/index/index.do");
+        String source = driver.findElement(By.xpath("//*[@id=\"main\"]/div[5]/div[2]/div[8]")).getText();
+        Matcher matcher = Pattern.compile("第([0-9]+)教学周").matcher(source);
+        if (matcher.find()) {
+            return Integer.valueOf(matcher.group(1));
+        }
+
+        throw new RuntimeException("Cannot determine the current week index.");
     }
 
     /**
