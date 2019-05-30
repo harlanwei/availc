@@ -68,8 +68,8 @@ public class Parser implements Closeable {
      *                               more information but no username or password is provided.
      */
     private void startChromium(boolean headless) {
-        final String DEFAULT_CHROME_DRIVER_PATH = System.getProperty("user.dir") + getChromeDriverPath();
-        final String DEFAULT_CHROME_BINARY_PATH = System.getProperty("user.dir") + getChromiumPath();
+        final String DEFAULT_CHROME_DRIVER_PATH = "C:\\Users\\mt199\\Desktop\\chromedriver_win32\\chromedriver.exe";
+        final String DEFAULT_CHROME_BINARY_PATH = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
 
         if (this.driver != null) return;
         if (this.username == null || this.password == null)
