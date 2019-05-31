@@ -36,6 +36,7 @@ public class Parser implements Closeable {
     private WebDriver driver;
     private String username;
     private String password;
+    private boolean shouldStartChromiumHeadlessly = true;
     private int pageSize;
     private boolean loggedIn = false;
 
@@ -62,12 +63,10 @@ public class Parser implements Closeable {
     /**
      * Start a Chromium browser (optionally in headless mode).
      *
-     * @param headless Starting Chromium in headless mode means that the browser interface will be
-     *                 hidden to the end user. Running non-headlessly would be quite a fun, though.
      * @throws IllegalStateException When the {@code Parser} instance needs to go online to retrieve
      *                               more information but no username or password is provided.
      */
-    private void startChromium(boolean headless) {
+    private void startChromium() {
         final String DEFAULT_CHROME_DRIVER_PATH = System.getProperty("user.dir") + getChromeDriverPath();
         final String DEFAULT_CHROME_BINARY_PATH = System.getProperty("user.dir") + getChromiumPath();
 
@@ -88,7 +87,7 @@ public class Parser implements Closeable {
                 "--disable-gpu", "--disable-extensions", "-incognito"
         );
 
-        if (headless) options.addArguments("--headless");
+        if (shouldStartChromiumHeadlessly) options.addArguments("--headless");
 
         options.setBinary(DEFAULT_CHROME_BINARY_PATH);
 
@@ -103,10 +102,14 @@ public class Parser implements Closeable {
 
     /**
      * A parser that might go online to retrieve more information.
+     *
+     * @param headless Starting Chromium in the headless mode, which means that the browser interface will be
+     *                 hidden to the end user. Running non-headlessly would be quite a fun, though.
      */
-    public Parser(@NotNull String username, @NotNull String password) {
+    public Parser(@NotNull String username, @NotNull String password, boolean headless) {
         this.username = username;
         this.password = password;
+        this.shouldStartChromiumHeadlessly = headless;
     }
 
     /**
@@ -114,7 +117,7 @@ public class Parser implements Closeable {
      */
     private void login() {
         if (loggedIn) return;
-        this.startChromium(false);
+        this.startChromium();
 
         // ======================= Mimic a user logging in =======================
         driver.get("https://e.buaa.edu.cn/users/sign_in");
@@ -372,7 +375,7 @@ public class Parser implements Closeable {
         Set<String> s = new HashSet<>();
         s.add("j4-101");
         System.out.println("Logging in as " + args[0]);
-        try (Parser p = new Parser(args[0], args[1])) {
+        try (Parser p = new Parser(args[0], args[1], true)) {
             System.out.println(
                     "J4-101 is free on Monday [1, 2] this week: " + p.isAvailable(s, 1, 2).get("j4-101")[0]
             );
