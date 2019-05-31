@@ -22,7 +22,10 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
-
 test {
     useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }
