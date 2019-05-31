@@ -312,6 +312,7 @@ public class Parser implements Closeable {
         String source = driver.findElement(By.xpath("//*[@id=\"main\"]/div[5]/div[2]/div[8]")).getText();
         Matcher matcher = Pattern.compile("第([0-9]+)教学周").matcher(source);
         if (matcher.find()) {
+            driver.get("https://10-200-21-61-7001.e.buaa.edu.cn/ieas2.1/");
             return Integer.valueOf(matcher.group(1));
         }
 
@@ -363,7 +364,7 @@ public class Parser implements Closeable {
 
         boolean[] result = new boolean[ROW_CAPACITY];
         for (int i = 1; i < row.size(); ++i) {
-            result[i - 1] = row.get(i).child(0).hasClass("kjs_icon");
+            result[i - 1] = !row.get(i).child(0).hasClass("kjs_icon");
         }
         return result;
     }
