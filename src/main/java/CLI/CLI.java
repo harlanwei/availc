@@ -73,7 +73,7 @@ public class CLI implements Runnable {
 
     @Option(names = {"-d", "--day"}, arity = "0..1", description = "day of query, e.g. Sun, Mon.")
     private void Setday(String day) {
-        this.day = day;
+        this.day = day.toLowerCase();
         isSetDay = true;
     }
 

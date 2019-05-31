@@ -5,52 +5,46 @@ import java.util.Calendar;
 //get and set option -d parameters
 public class WeekdayNo {
 
-    private static final Weekday[] DAY=
-    {
-        Weekday.Sunday,
-        Weekday.Monday,
-        Weekday.Tuesday,
-        Weekday.Wednesday,
-        Weekday.Thursday,
-        Weekday.Friday,
-        Weekday.Saturday,
-
+    private static final Weekday[] DAY = {
+            Weekday.Sunday,
+            Weekday.Monday,
+            Weekday.Tuesday,
+            Weekday.Wednesday,
+            Weekday.Thursday,
+            Weekday.Friday,
+            Weekday.Saturday,
     };
 
     /***
-     * read the parameters of -d,and convert the parameters to a Weekday enum object
-     * @param day
-     * @return
-     * @throws Exception
+     * Read the parameters of -d, and convert the parameters to a {@code Weekday} enum object
      */
-    public static Weekday getDay(String day)throws  Exception{
-        switch (day){
-            case "Sun":
+    public static Weekday getDay(String day) throws Exception {
+        switch (day) {
+            case "sun":
                 return DAY[0];
-            case "Mon":
+            case "mon":
                 return DAY[1];
-            case "Tue":
+            case "tue":
                 return DAY[2];
-            case "Wed":
+            case "wed":
                 return DAY[3];
-            case "Thu":
+            case "thu":
                 return DAY[4];
-            case "Fri":
+            case "fri":
                 return DAY[5];
-            case "Sat":
+            case "sat":
                 return DAY[6];
             default:
-                throw new Exception("日期输入有误:"+day);
+                throw new Exception("日期输入有误:" + day);
         }
     }
 
     /***
-     * get day in a week,Sunday ……
-     * @return
+     * Get day in a week, e.g. Sunday.
      */
-    public static Weekday getNowWeekday(){
+    public static Weekday getNowWeekday() {
         Calendar now = Calendar.getInstance();
-        int no=now.get(Calendar.DAY_OF_WEEK)-1;
+        int no = now.get(Calendar.DAY_OF_WEEK) - 1;
         return DAY[no];
     }
 }

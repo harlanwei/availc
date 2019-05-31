@@ -113,25 +113,25 @@ public class Room {
         else {
             int day = -1;
             switch (weekday) {
-                case Sunday:
+                case Monday:
                     day = 0;
                     break;
-                case Monday:
+                case Tuesday:
                     day = 1;
                     break;
-                case Tuesday:
+                case Wednesday:
                     day = 2;
                     break;
-                case Wednesday:
+                case Thursday:
                     day = 3;
                     break;
-                case Thursday:
+                case Friday:
                     day = 4;
                     break;
-                case Friday:
+                case Saturday:
                     day = 5;
                     break;
-                case Saturday:
+                case Sunday:
                     day = 6;
                     break;
             }
