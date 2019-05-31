@@ -4,8 +4,6 @@ import Common.Room;
 import Common.Weekday;
 import Parser.Parser;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import jdk.swing.interop.SwingInterOpUtils;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
@@ -20,20 +18,19 @@ import static Common.WeekdayNo.getNowWeekday;
 
 public class CLI implements Runnable {
 
-    @Option(names = { "-v", "--verbose" }, description = "Verbose mode. Helpful for troubleshooting. " +
-            "Multiple -v options increase the verbosity.")
-    private boolean[] verbose = new boolean[0];
 
     @Option(names = { "-h", "--help" }, usageHelp = true,
             description = "Displays this help message and quits.")
     private boolean helpRequested = false;
 
+    //whether to show head
     private boolean shouldHeadLess = true;
     @Option(names = {"--headless"},arity = "0",description = "headless,default = true")
     private void setShouldHeadLess(String tmp){
         shouldHeadLess = false;
     }
 
+    //which building to choose
     @Option(names = {"-b","--building"},required = true,description = "this value is the name of building,you must input this.for example,it could be x1(xueyuanlu 1),s3(shahe j3)")
     private String building;
 
@@ -66,6 +63,8 @@ public class CLI implements Runnable {
         }
     }
 
+    //record which day is selected
+    //if not chosen, set it default value
     private boolean isSetDay = false;
     private String day="";
     @Option(names = {"-d","--day"},arity = "0..1",description = "day of query,Sun,Mon……")
@@ -121,6 +120,7 @@ public class CLI implements Runnable {
         end = 14;
     }
 
+    //record number of show result
     private int showItemsNum;
     @Option(names = {"-l","--limit"},arity = "0..1",defaultValue = "5",description = " number of rooms to show, default value is 5")
     private void setShowItemsNum(String t){
@@ -149,10 +149,6 @@ public class CLI implements Runnable {
     void setShouldGetJson(String tmp){
         shouldGetJson = true;
         shouldShowAllRoom = true;
-    }
-
-    private void showQueryday(){
-
     }
 
     /***
@@ -191,8 +187,9 @@ public class CLI implements Runnable {
                     queryDay = getDay(day);
                 if(start==0 && end ==0)
                 {
-                    start =getNowClassNo();
-                    end =getNowClassNo();
+                    int startAndEnd[] =getNowClassNo();
+                    start =startAndEnd[0];
+                    end =startAndEnd[1];
                 }
                 Map<String,Boolean> results = new HashMap<String, Boolean>();
                 //query result
@@ -209,54 +206,56 @@ public class CLI implements Runnable {
             }
             else {
                 Weekday queryDay;
-                if(isNowWeekNum==false){
-                    if(isSetDay ==false)
-                        throw new Exception("请完善日期-d 选项");
-                    if(start ==0 && end == 0)
-                        throw new Exception("请完善课堂-t 选项");
-                   queryDay = getDay(day);
-                    System.out.println("在"+weekStartNum+"-"+weekEndNum+"周"+queryDay+":");
+                if(day.equals("")){
+                    queryDay = getNowWeekday();
                 }
-                else{
-                    if(day.equals(""))
-                       queryDay = getNowWeekday();
-                    else
-                        queryDay = getDay(day);
-                    if(start ==0 && end ==0){
-                        start =getNowClassNo();
-                        end = start;
-                    }
+                else
+                    // set default value
+                    queryDay = getDay(day);
+                if(start ==0 && end ==0){
+                    //get default week number
+                    int startAndEnd[] =getNowClassNo();
+                    start =startAndEnd[0];
+                    end =startAndEnd[1];
+                    //convert get class to 1-14
+                }
+                if(isNowWeekNum == true)
                     System.out.println("在本周"+queryDay+":");
+                else{
+                    if(weekStartNum!=weekEndNum)
+                        System.out.println("在"+weekStartNum+"-"+weekEndNum+"周"+queryDay+":");
+                    else
+                        System.out.println("在"+weekStartNum+"周"+queryDay+":");
                 }
+
                 if(roomResult.size()==0)
                     System.out.println("没有查询到教室!");
-                else{
-                    if(roomResult.size() ==1)
-                        for (Room r : roomResult){
+                else {
+                    if (roomResult.size() == 1)
+                        for (Room r : roomResult) {
                             System.out.print(r.getBuilding() + " " + r.getRoom() + " ");
-                            System.out.println("在第"+start+"-"+end+"节课:");
-                            if (r.isAvailable(queryDay,start,end))
+                            System.out.println("在第" + start + "-" + end + "节课:");
+                            if (r.isAvailable(queryDay, start, end))
                                 System.out.println("可以使用");
                             else
                                 System.out.println("不能使用");
                         }
                     else {
-                        System.out.println("在第"+start+"-"+end+"节课:");
+                        System.out.println("在第" + start + "-" + end + "节课:");
                         System.out.println("可使用的教室如下：");
-                        int showMin=roomResult.size();
-                        if(shouldShowAllRoom==false)
-                            showMin = Math.min(roomResult.size(),showItemsNum);
-                        for(Room r : roomResult){
-                            if(showMin==-1)
+                        int showMin = roomResult.size();
+                        if (shouldShowAllRoom == false)
+                            showMin = Math.min(roomResult.size(), showItemsNum);
+                        for (Room r : roomResult) {
+                            if (showMin == -1)
                                 break;
-                            if(r.isAvailable(queryDay,start,end)){
+                            if (r.isAvailable(queryDay, start, end)) {
                                 showMin--;
-                                System.out.print(r.getRoom()+"、");
+                                System.out.print(r.getRoom() + "、");
                             }
 
                         }
                     }
-
                 }
             }
         }catch (Exception e){

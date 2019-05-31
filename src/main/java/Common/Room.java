@@ -1,21 +1,18 @@
 package Common;
 
-import org.checkerframework.checker.units.qual.C;
-
 import java.util.Arrays;
 import java.util.Objects;
 
-import static Common.ClassNo.getNowClassNo;
-import static Common.WeekdayNo.getNowWeekday;
 
 public class Room {
 
-    //基本属性用于记录教室的基本属性
+    //elements of room,building and room
     private String building;
     private String room;
-    //缓存一周内的教室占用情况，若可用来自习，则应将值设为true，反之设为false。
+    //this array is used to record the state of room's availability.7*6, seven day in a week ,six long class in a day.
     private boolean[][] isAvailable;
 
+    //getter，setter
     public String getBuilding() {
         return building;
     }
@@ -23,8 +20,6 @@ public class Room {
     public void setBuilding(String building) {
         this.building = building;
     }
-
-    //属性的getter，setter
 
     public String getRoom() {
         return room;
@@ -91,25 +86,17 @@ public class Room {
      */
     private int resetStartAndEndValue(int val){
         switch (val){
-            case 1:
-            case 2:
+            case 1: case 2:
                 return 0;
-            case 3:
-            case 4:
-            case 5:
+            case 3: case 4: case 5:
                 return 1;
-            case 6:
-            case 7:
+            case 6: case 7:
                 return 2;
-            case 8:
-            case 9:
-            case 10:
+            case 8: case 9: case 10:
                 return 3;
-            case 11:
-            case 12:
+            case 11: case 12:
                 return 4;
-            case 13:
-            case 14:
+            case 13: case 14:
                 return 5;
             default:
                 return -1;
@@ -118,9 +105,8 @@ public class Room {
 
 
     /***
-     * 这段函数用于查询在指定时间段内，教室是否处于自习状态，若可以自习，则返回true,否则返回false。
-     * 若输入日期不合法，则抛出异常。
-     * 查询某一天的可使用情况
+     * get the availability of room in the selected day and class
+     * if the parameters is illegal, throw a IllegalArgumentException.
      * @param weekday
      * @param start
      * @param end
@@ -161,6 +147,7 @@ public class Room {
 
     }
 
+    //override room equals and hashcode methods
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

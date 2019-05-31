@@ -1,13 +1,11 @@
 package Common;
 
-import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
 import java.util.Calendar;
-import java.util.Date;
 
+//get and set option -d parameters
 public class WeekdayNo {
 
-    public static final Weekday[] DAY=
+    private static final Weekday[] DAY=
     {
         Weekday.Sunday,
         Weekday.Monday,
@@ -19,7 +17,12 @@ public class WeekdayNo {
 
     };
 
-
+    /***
+     * read the parameters of -d,and convert the parameters to a Weekday enum object
+     * @param day
+     * @return
+     * @throws Exception
+     */
     public static Weekday getDay(String day)throws  Exception{
         switch (day){
             case "Sun":

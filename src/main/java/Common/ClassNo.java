@@ -55,7 +55,8 @@ public class ClassNo {
      * besides these time above, return -1,because the class rooms are closed
      * @return num of class
      */
-    public static int getNowClassNo(){
+    public static int[] getNowClassNo(){
+        int res[] = new int[2];
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
         Date nowDate = new Date();
         try{
@@ -67,15 +68,31 @@ public class ClassNo {
         date.setTime(nowDate);
         Calendar cpr = Calendar.getInstance();
         int len = classTime.length;
+        int start = -1;
         for(int i=0;i<len;i++){
             cpr.setTime(classTime[i]);
             if(date.before(cpr)){
-                return i-1;
+                start = i-1;
+                break;
             }
-
         }
-        return -1;
+        switch (start){
+            case 0: case 1:
+                res[0]=1;res[1]=2;break;
+            case 3: case 4: case 5:
+                res[0]=3;res[1]=5;break;
+            case 6: case 7:
+                res[0]=6;res[1]=7;break;
+            case 8: case 9: case 10:
+                res[0]=8;res[1]=10;break;
+            case 11:case 12:
+                res[0]=11;res[1]=12;break;
+            case 13: case 14:
+                res[0]=13;res[1]=14;break;
+            default:
+                res[0]=0;res[1]=0;break;
+        }
+        return res;
     }
-
 
 }
