@@ -82,13 +82,12 @@ public class Parser implements Closeable {
 
         System.setProperty("webdriver.chrome.driver", DEFAULT_CHROME_DRIVER_PATH);
 
-        // Start Chrome in the headless mode and disable all extensions to speed up the loading process
         ChromeOptions options = new ChromeOptions().addArguments(
+                // Disable all extensions to speed up the loading process; Run in incognito mode to avoid
+                // cookie collisions. Disable GPU to speed up a cold program startup.
                 "--disable-gpu", "--disable-extensions", "-incognito"
         );
-
         if (shouldStartChromiumHeadlessly) options.addArguments("--headless");
-
         options.setBinary(DEFAULT_CHROME_BINARY_PATH);
 
         this.driver = new ChromeDriver(options);
@@ -114,6 +113,8 @@ public class Parser implements Closeable {
 
     /**
      * Login with the provided username and password by mimicking user actions.
+     *
+     * @throws RuntimeException When the provided username and password don't match.
      */
     private void login() {
         if (loggedIn) return;
@@ -130,8 +131,15 @@ public class Parser implements Closeable {
         // just throw a {@code TimeoutException}. The {@code sleepInMillis} indicates how often should
         // the expectation be checked. The default value is 500, but here it is changed to speed up the
         // whole process. Likewise for the {@code WebDriverWait} call below.
-        new WebDriverWait(driver, 10, 200)
-                .until(ExpectedConditions.urlToBe("https://e.buaa.edu.cn/"));
+        try {
+            new WebDriverWait(driver, 10, 200)
+                    .until(ExpectedConditions.urlToBe("https://e.buaa.edu.cn/"));
+        } catch (RuntimeException e) {
+            // When a runtime exception happens here, it is usually because the user has provided a
+            // wrong username and/or password. We throw a new runtime exception here to explicitly
+            // point out the reason.
+            throw new RuntimeException("Wrong username and/or password.");
+        }
 
 
         // ====================== Get token to the platform ======================
