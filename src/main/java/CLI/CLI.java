@@ -304,8 +304,6 @@ public class CLI implements Runnable {
 
     public static void main(String[] args) {
         disableWarning();
-//        List<String> aurgments= new ArrayList<String>();
-
         new CommandLine(new CLI()).execute(args);
     }
 }

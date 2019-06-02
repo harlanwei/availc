@@ -67,8 +67,8 @@ public class Parser implements Closeable {
      *                               more information but no username or password is provided.
      */
     private void startChromium() {
-        final String DEFAULT_CHROME_DRIVER_PATH =   "C:\\Users\\mt199\\Desktop\\chromedriver_win32\\chromedriver.exe";
-        final String DEFAULT_CHROME_BINARY_PATH = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe";
+        final String DEFAULT_CHROME_DRIVER_PATH = System.getProperty("user.dir") + getChromeDriverPath();
+        final String DEFAULT_CHROME_BINARY_PATH = System.getProperty("user.dir") + getChromiumPath();
 
         if (this.driver != null) return;
         if (this.username == null || this.password == null)
@@ -173,10 +173,20 @@ public class Parser implements Closeable {
      * @param classrooms A nullable set of rooms that needs to be queried.
      * @return A map whose keys are the rooms' names, and the values are boolean arrays
      * containing 42 values each representing a range.
+     * @throws NoSuchRoomException When there exists a room in the classroom set that's not
+     *                             in the database.
      */
-    public Map<String, boolean[]> isAvailable(Set<String> classrooms) {
+    public Map<String, boolean[]> isAvailable(Set<String> classrooms) throws NoSuchRoomException {
         int currentWeek = getCurrentWeek();
         return isAvailable(classrooms, currentWeek, currentWeek);
+    }
+
+    private static Room getRoom(String roomName) throws NoSuchRoomException {
+        final Params params = Params.getAll();
+        final Map<String, Room> rooms = params.rooms;
+        Room room = rooms.get(roomName);
+        if (room == null) throw new NoSuchRoomException(roomName);
+        return room;
     }
 
     /**
@@ -187,8 +197,10 @@ public class Parser implements Closeable {
      * containing 42 values each representing a range.
      * @throws IllegalArgumentException When {@code start} or {@code end} is out of the
      *                                  range of [1, 18]; or when {@code start > end}.
+     * @throws NoSuchRoomException      When there exists a room in the classroom set that's not
+     *                                  in the database.
      */
-    public Map<String, boolean[]> isAvailable(Set<String> classrooms, int start, int end) {
+    public Map<String, boolean[]> isAvailable(Set<String> classrooms, int start, int end) throws NoSuchRoomException {
         Map<String, boolean[]> results = new HashMap<>();
         if (classrooms == null) return results;
 
@@ -200,14 +212,14 @@ public class Parser implements Closeable {
         if (start > end)
             throw new IllegalArgumentException("`start` can't be later than `end`.");
 
-        Params params = Params.getAll();
+        final Params params = Params.getAll();
         this.pageSize = params.pageSize;
         final Map<String, Room> rooms = params.rooms;
 
         classrooms
                 .stream()
                 .map(String::toLowerCase)
-                .map(rooms::get)
+                .map(Parser::getRoom)
                 .sorted()
                 .forEach(room -> results.put(room.name, query(room, start, end)));
 
