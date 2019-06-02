@@ -33,25 +33,13 @@ public class CLI implements Runnable {
         headless = false;
     }
 
-    //which building to choose
-//    @Option(names = {"-b", "--building"}, description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
-//    private String building;
-//
-//    //record query rooms
-//    private boolean shouldGetAllRoomInTheBuilding = true;
-//    private Set<String> rooms;
-//
-//    @Option(names = {"-r", "--rome"},arity = "0..*", split = ",", description = "value of classrooms")
-//    private void setRooms(Set<String> input) {
-//        shouldGetAllRoomInTheBuilding = false;
-//        rooms = input;
-//    }
-
+    //record room or building information
+    //if get the rooms information,the building information will be deprecated
     @ArgGroup(exclusive =false,multiplicity = "1..2")
     queryRooms inputroom;
 
     static class queryRooms{
-        @Option(names = {"-b", "--building"}, description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
+        @Option(names = {"-b", "--building"},arity = "1", description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
         String building;
         @Option(names = {"-r", "--rome"},arity = "1..*", split = ",", description = "value of classrooms")
         Set<String>rooms;
@@ -192,8 +180,6 @@ public class CLI implements Runnable {
                 rooms = inputroom.rooms;
             else
                 rooms = p.getRoomsInTheBuilding(inputroom.building);
-
-
             // choose query mode
             if (isNowWeekNum)
                 queryResult = p.isAvailable(rooms);
