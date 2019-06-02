@@ -55,12 +55,11 @@ public class Room {
 
     /***
      * set the information for the classrooms
-     * @param building
      * short name of the building
      * @param isAvailable
      * resize the boolean array
      */
-    public Room(String building, String room, boolean[] isAvailable) {
+    public Room(String room, boolean[] isAvailable) {
         final int DAY_IN_WEEK = 7;
         final int CLASS_IN_DAY = 6;
         this.room = room;

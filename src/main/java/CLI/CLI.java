@@ -4,10 +4,13 @@ import Common.Room;
 import Common.Weekday;
 import Parser.Parser;
 import com.google.gson.Gson;
+import org.checkerframework.checker.units.qual.A;
 import picocli.CommandLine;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Option;
 import sun.misc.Unsafe;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,34 +20,42 @@ import static Common.WeekdayNo.getDay;
 import static Common.WeekdayNo.getNowWeekday;
 
 public class CLI implements Runnable {
-    @Option(names = {"-h", "--help"}, usageHelp = true,
+    @Option(names = {"-h", "--help"},usageHelp = true,
             description = "Displays this help message and quits.")
-    private boolean helpRequested = false;
+    private boolean helpRequested = true;
 
     /**
      * Start in the headless mode means that the browser window would not be shown.
      */
     private boolean headless = true;
-
     @Option(names = {"--non-headless"}, arity = "0", description = "Start in the headless mode means that the browser window would not be shown. This option turns headless mode off.")
     private void setHeadlessMode(String __) {
         headless = false;
     }
 
     //which building to choose
-    @Option(names = {"-b", "--building"}, description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
-    private String building;
+//    @Option(names = {"-b", "--building"}, description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
+//    private String building;
+//
+//    //record query rooms
+//    private boolean shouldGetAllRoomInTheBuilding = true;
+//    private Set<String> rooms;
+//
+//    @Option(names = {"-r", "--rome"},arity = "0..*", split = ",", description = "value of classrooms")
+//    private void setRooms(Set<String> input) {
+//        shouldGetAllRoomInTheBuilding = false;
+//        rooms = input;
+//    }
 
-    //record query rooms
-    private boolean shouldGetAllRoomInTheBuilding = true;
-    private Set<String> rooms;
+    @ArgGroup(exclusive =false,multiplicity = "1..2")
+    queryRooms inputroom;
 
-    @Option(names = {"-r", "--rome"}, arity = "0..*", split = ",", description = "value of classrooms")
-    private void setRooms(Set<String> input) {
-        shouldGetAllRoomInTheBuilding = false;
-        rooms = input;
+    static class queryRooms{
+        @Option(names = {"-b", "--building"}, description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
+        String building;
+        @Option(names = {"-r", "--rome"},arity = "1..*", split = ",", description = "value of classrooms")
+        Set<String>rooms;
     }
-
     //get query weeks
     //default value the weekNo of now
     private int weekStartNum;
@@ -173,23 +184,27 @@ public class CLI implements Runnable {
         try (Parser p = new Parser("mt16151056", "mengtao1219", this.headless)) {
             // stores query results
             Map<String, boolean[]> queryResult;
-
+            Set<String> rooms;
             // run query function
             if (wasTimeSet)
                 throw new Exception("you can't select more than one option to set query time");
-            if (shouldGetAllRoomInTheBuilding)
-                rooms = p.getRoomsInTheBuilding(building);
+            if (inputroom.rooms!=null)
+                rooms = inputroom.rooms;
+            else
+                rooms = p.getRoomsInTheBuilding(inputroom.building);
+
 
             // choose query mode
             if (isNowWeekNum)
                 queryResult = p.isAvailable(rooms);
             else
                 queryResult = p.isAvailable(rooms, weekStartNum, weekEndNum);
-
+            if(queryResult.size()==0)
+                throw new Exception("没有您要查找的教室，请检查是否输入有误");
             // convert query result to room object
             Set<Room> roomResult = new HashSet<>();
             for (String roomName : queryResult.keySet()) {
-                Room tmp = new Room(building, roomName, queryResult.get(roomName));
+                Room tmp = new Room(roomName, queryResult.get(roomName));
                 roomResult.add(tmp);
             }
 
@@ -239,31 +254,27 @@ public class CLI implements Runnable {
                         System.out.println("在" + weekStartNum + "周" + queryDay + ":");
                 }
 
-                if (roomResult.size() == 0)
-                    System.out.println("没有查询到教室!");
-                else {
-                    if (roomResult.size() == 1)
-                        for (Room room : roomResult) {
-                            System.out.print(room.getName() + " 在第 " + start + " - " + end + " 节课:");
-                            if (room.isAvailable(queryDay, start, end))
-                                System.out.println("可以使用");
-                            else
-                                System.out.println("不能使用");
-                        }
-                    else {
-                        System.out.println("在第 " + start + " - " + end + " 节课，可使用的教室如下：");
-
-                        int maximumOutputLength = Math.min(roomResult.size(), showItemsNum);
-                        String output = roomResult
-                                .stream()
-                                .filter(el -> el.isAvailable(queryDay, start, end))
-                                .limit(maximumOutputLength)
-                                .map(Room::getName)
-                                .map(String::toUpperCase)
-                                .sorted()
-                                .collect(Collectors.joining(", "));
-                        System.out.println(output);
+                if (roomResult.size() == 1)
+                    for (Room room : roomResult) {
+                        System.out.print(room.getName() + " 在第 " + start + " - " + end + " 节课:");
+                        if (room.isAvailable(queryDay, start, end))
+                            System.out.println("可以使用");
+                        else
+                            System.out.println("不能使用");
                     }
+                else {
+                    System.out.println("在第 " + start + " - " + end + " 节课，可使用的教室如下：");
+
+                    int maximumOutputLength = Math.min(roomResult.size(), showItemsNum);
+                    String output = roomResult
+                            .stream()
+                            .filter(el -> el.isAvailable(queryDay, start, end))
+                            .limit(maximumOutputLength)
+                            .map(Room::getName)
+                            .map(String::toUpperCase)
+                            .sorted()
+                            .collect(Collectors.joining(", "));
+                    System.out.println(output);
                 }
             }
         } catch (Exception e) {
@@ -293,6 +304,8 @@ public class CLI implements Runnable {
 
     public static void main(String[] args) {
         disableWarning();
+//        List<String> aurgments= new ArrayList<String>();
+
         new CommandLine(new CLI()).execute(args);
     }
 }
