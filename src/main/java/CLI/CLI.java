@@ -212,10 +212,7 @@ public class CLI implements Runnable {
                         results.put(r.getName(), true);
                 }
                 //Json data
-                Map<String, Object> json = new HashMap<String, Object>();
-                json.put("results", results);
-                Gson gson = new Gson();
-                String jsonStr = gson.toJson(json);
+                String jsonStr = new Gson().toJson(results);
                 System.out.println(jsonStr);
             } else {
                 Weekday queryDay;
