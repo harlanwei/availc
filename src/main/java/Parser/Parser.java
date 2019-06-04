@@ -82,13 +82,12 @@ public class Parser implements Closeable {
 
         System.setProperty("webdriver.chrome.driver", DEFAULT_CHROME_DRIVER_PATH);
 
-        // Start Chrome in the headless mode and disable all extensions to speed up the loading process
         ChromeOptions options = new ChromeOptions().addArguments(
+                // Disable all extensions to speed up the loading process; Run in incognito mode to avoid
+                // cookie collisions. Disable GPU to speed up a cold program startup.
                 "--disable-gpu", "--disable-extensions", "-incognito"
         );
-
         if (shouldStartChromiumHeadlessly) options.addArguments("--headless");
-
         options.setBinary(DEFAULT_CHROME_BINARY_PATH);
 
         this.driver = new ChromeDriver(options);
@@ -114,6 +113,8 @@ public class Parser implements Closeable {
 
     /**
      * Login with the provided username and password by mimicking user actions.
+     *
+     * @throws RuntimeException When the provided username and password don't match.
      */
     private void login() {
         if (loggedIn) return;
@@ -130,8 +131,15 @@ public class Parser implements Closeable {
         // just throw a {@code TimeoutException}. The {@code sleepInMillis} indicates how often should
         // the expectation be checked. The default value is 500, but here it is changed to speed up the
         // whole process. Likewise for the {@code WebDriverWait} call below.
-        new WebDriverWait(driver, 10, 200)
-                .until(ExpectedConditions.urlToBe("https://e.buaa.edu.cn/"));
+        try {
+            new WebDriverWait(driver, 10, 200)
+                    .until(ExpectedConditions.urlToBe("https://e.buaa.edu.cn/"));
+        } catch (RuntimeException e) {
+            // When a runtime exception happens here, it is usually because the user has provided a
+            // wrong username and/or password. We throw a new runtime exception here to explicitly
+            // point out the reason.
+            throw new RuntimeException("Wrong username and/or password.");
+        }
 
 
         // ====================== Get token to the platform ======================
@@ -165,10 +173,20 @@ public class Parser implements Closeable {
      * @param classrooms A nullable set of rooms that needs to be queried.
      * @return A map whose keys are the rooms' names, and the values are boolean arrays
      * containing 42 values each representing a range.
+     * @throws NoSuchRoomException When there exists a room in the classroom set that's not
+     *                             in the database.
      */
-    public Map<String, boolean[]> isAvailable(Set<String> classrooms) {
+    public Map<String, boolean[]> isAvailable(Set<String> classrooms) throws NoSuchRoomException {
         int currentWeek = getCurrentWeek();
         return isAvailable(classrooms, currentWeek, currentWeek);
+    }
+
+    private static Room getRoom(String roomName) throws NoSuchRoomException {
+        final Params params = Params.getAll();
+        final Map<String, Room> rooms = params.rooms;
+        Room room = rooms.get(roomName);
+        if (room == null) throw new NoSuchRoomException(roomName);
+        return room;
     }
 
     /**
@@ -179,8 +197,10 @@ public class Parser implements Closeable {
      * containing 42 values each representing a range.
      * @throws IllegalArgumentException When {@code start} or {@code end} is out of the
      *                                  range of [1, 18]; or when {@code start > end}.
+     * @throws NoSuchRoomException      When there exists a room in the classroom set that's not
+     *                                  in the database.
      */
-    public Map<String, boolean[]> isAvailable(Set<String> classrooms, int start, int end) {
+    public Map<String, boolean[]> isAvailable(Set<String> classrooms, int start, int end) throws NoSuchRoomException {
         Map<String, boolean[]> results = new HashMap<>();
         if (classrooms == null) return results;
 
@@ -192,14 +212,14 @@ public class Parser implements Closeable {
         if (start > end)
             throw new IllegalArgumentException("`start` can't be later than `end`.");
 
-        Params params = Params.getAll();
+        final Params params = Params.getAll();
         this.pageSize = params.pageSize;
         final Map<String, Room> rooms = params.rooms;
 
         classrooms
                 .stream()
                 .map(String::toLowerCase)
-                .map(rooms::get)
+                .map(Parser::getRoom)
                 .sorted()
                 .forEach(room -> results.put(room.name, query(room, start, end)));
 
