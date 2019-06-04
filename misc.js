@@ -310,7 +310,7 @@ info.rooms['d111'] = {
   index: 18,
 }
 
-info.rooms['b319'] = {
+info.rooms['d319'] = {
   page: 'x82',
   name: 'd319',
   index: 19,
