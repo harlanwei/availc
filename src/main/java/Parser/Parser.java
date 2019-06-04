@@ -85,7 +85,7 @@ public class Parser implements Closeable {
         ChromeOptions options = new ChromeOptions().addArguments(
                 // Disable all extensions to speed up the loading process; Run in incognito mode to avoid
                 // cookie collisions. Disable GPU to speed up a cold program startup.
-                "--disable-gpu", "--disable-extensions", "-incognito"
+                "--disable-gpu", "--disable-extensions", "-incognito", "--no-sandbox"
         );
         if (shouldStartChromiumHeadlessly) options.addArguments("--headless");
         options.setBinary(DEFAULT_CHROME_BINARY_PATH);

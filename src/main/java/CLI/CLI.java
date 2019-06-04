@@ -20,7 +20,7 @@ import static Common.WeekdayNo.getDay;
 import static Common.WeekdayNo.getNowWeekday;
 
 public class CLI implements Runnable {
-    @Option(names = {"-h", "--help"},usageHelp = true,
+    @Option(names = {"-h", "--help"}, usageHelp = true,
             description = "Displays this help message and quits.")
     private boolean helpRequested = true;
 
@@ -28,6 +28,7 @@ public class CLI implements Runnable {
      * Start in the headless mode means that the browser window would not be shown.
      */
     private boolean headless = true;
+
     @Option(names = {"--non-headless"}, arity = "0", description = "Start in the headless mode means that the browser window would not be shown. This option turns headless mode off.")
     private void setHeadlessMode(String __) {
         headless = false;
@@ -35,15 +36,16 @@ public class CLI implements Runnable {
 
     //record room or building information
     //if get the rooms information,the building information will be deprecated
-    @ArgGroup(exclusive =false,multiplicity = "1..2")
+    @ArgGroup(exclusive = false, multiplicity = "1..2")
     queryRooms inputroom;
 
-    static class queryRooms{
-        @Option(names = {"-b", "--building"},arity = "1", description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
+    static class queryRooms {
+        @Option(names = {"-b", "--building"}, arity = "1", description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
         String building;
-        @Option(names = {"-r", "--rome"},arity = "1..*", split = ",", description = "value of classrooms")
-        Set<String>rooms;
+        @Option(names = {"-r", "--rome"}, arity = "1..*", split = ",", description = "value of classrooms")
+        Set<String> rooms;
     }
+
     //get query weeks
     //default value the weekNo of now
     private int weekStartNum;
@@ -176,7 +178,7 @@ public class CLI implements Runnable {
             // run query function
             if (wasTimeSet)
                 throw new Exception("you can't select more than one option to set query time");
-            if (inputroom.rooms!=null)
+            if (inputroom.rooms != null)
                 rooms = inputroom.rooms;
             else
                 rooms = p.getRoomsInTheBuilding(inputroom.building);
@@ -185,7 +187,7 @@ public class CLI implements Runnable {
                 queryResult = p.isAvailable(rooms);
             else
                 queryResult = p.isAvailable(rooms, weekStartNum, weekEndNum);
-            if(queryResult.size()==0)
+            if (queryResult.size() == 0)
                 throw new Exception("没有您要查找的教室，请检查是否输入有误");
             // convert query result to room object
             Set<Room> roomResult = new HashSet<>();
