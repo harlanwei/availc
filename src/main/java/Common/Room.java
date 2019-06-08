@@ -13,45 +13,12 @@ public class Room {
         return room;
     }
 
-    public void setRoom(String room) {
-        this.room = room;
-    }
 
-    public boolean[][] getIsAvailable() {
+    private boolean[][] getIsAvailable() {
         return isAvailable;
     }
 
-    public void setIsAvailable(boolean[][] isAvailable) {
-        this.isAvailable = isAvailable;
-    }
 
-
-    /***
-     * convert the option -b parameters to its full name
-     * @return full name
-     */
-    private String convertBuildingShortNametoFullname(String sn) {
-        switch (sn) {
-            case "x1":
-                return "Xuyuanlu 1";
-            case "x3":
-                return "Xuyuanlu 4";
-            case "x7":
-                return "Xueyuanlu Main Building";
-            case "x8":
-                return "Xueyuanlu New Main Building";
-            case "s1":
-                return "Shahe J1";
-            case "s3":
-                return "Shahe J3";
-            case "s4":
-                return "Shahe J4";
-            case "s5":
-                return "Shahe 5";
-            default:
-                return "error!";//this is impossible to happen
-        }
-    }
 
     /***
      * set the information for the classrooms

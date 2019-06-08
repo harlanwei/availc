@@ -5,11 +5,15 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ *convert time to classNo
+ */
 public class ClassNo {
+
     /***
      * convert String to date
-     * @param time
-     * @return
+     * @param time value of input
+     * @return date
      */
     private static Date getTime(String time){
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
@@ -26,7 +30,7 @@ public class ClassNo {
     /***
      * store class time
      */
-    public static final Date[] classTime={
+    private static final Date[] classTime={
             getTime("8:00"),
             getTime("8:45"),
             getTime("9:35"),
@@ -56,7 +60,7 @@ public class ClassNo {
      * @return num of class
      */
     public static int[] getNowClassNo(){
-        int res[] = new int[2];
+        int[] res = new int[2];
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
         Date nowDate = new Date();
         try{
@@ -89,8 +93,6 @@ public class ClassNo {
                 res[0]=11;res[1]=12;break;
             case 13: case 14:
                 res[0]=13;res[1]=14;break;
-            default:
-                res[0]=0;res[1]=0;break;
         }
         return res;
     }
