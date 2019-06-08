@@ -67,8 +67,9 @@ public class Parser implements Closeable {
      *                               more information but no username or password is provided.
      */
     private void startChromium() {
-        final String DEFAULT_CHROME_DRIVER_PATH = System.getProperty("user.dir") + getChromeDriverPath();
-        final String DEFAULT_CHROME_BINARY_PATH = System.getProperty("user.dir") + getChromiumPath();
+        final String USER_DIR = System.getProperty("user.dir");
+        final String DEFAULT_CHROME_DRIVER_PATH = USER_DIR + getChromeDriverPath();
+        final String DEFAULT_CHROME_BINARY_PATH = USER_DIR + getChromiumPath();
 
         if (this.driver != null) return;
         if (this.username == null || this.password == null)
@@ -387,19 +388,5 @@ public class Parser implements Closeable {
             result[i - 1] = !row.get(i).child(0).hasClass("kjs_icon");
         }
         return result;
-    }
-
-    /**
-     * Used as a temporary test method. DO NOT CALL THIS METHOD.
-     */
-    public static void main(String[] args) {
-        Set<String> s = new HashSet<>();
-        s.add("j4-101");
-        System.out.println("Logging in as " + args[0]);
-        try (Parser p = new Parser(args[0], args[1], true)) {
-            System.out.println(
-                    "J4-101 is free on Monday [1, 2] this week: " + p.isAvailable(s, 1, 2).get("j4-101")[0]
-            );
-        }
     }
 }
