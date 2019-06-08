@@ -19,6 +19,9 @@ import static Common.WeekdayNo.getDay;
 import static Common.WeekdayNo.getNowWeekday;
 
 public class CLI implements Runnable {
+    private static final String DEFAULT_USERNAME = "mt16151056";
+    private static final String DEFAULT_PASSWORD = "mengtao1219";
+
     /**
      * usageHelp must need a boolean variable,even this variable won't be used.
      */
@@ -219,10 +222,11 @@ public class CLI implements Runnable {
      */
     @Override
     public void run() {
-        try (Parser p = new Parser("mt16151056", "mengtao1219", this.headless)) {
+        try (Parser p = new Parser(DEFAULT_USERNAME, DEFAULT_PASSWORD, this.headless)) {
             // stores query results
             Map<String, boolean[]> queryResult;
             Set<String> rooms = new HashSet<>();
+
             // run query function
             if (wasTimeSet)
                 throw new Exception("you can't select more than one option to set query time");
@@ -234,7 +238,6 @@ public class CLI implements Runnable {
                     tmp = p.getRoomsInTheBuilding(b);
                     rooms.addAll(tmp);
                 }
-
             }
 
             // choose query mode
@@ -268,13 +271,14 @@ public class CLI implements Runnable {
                 else
                     queryDay = getDay(day);
 
-
                 Map<String, Boolean> results = new HashMap<>();
+
                 //query result
                 for (Room r : roomResult) {
                     if (r.isAvailable(queryDay, start, end))
                         results.put(r.getName(), true);
                 }
+
                 //Json data
                 String jsonStr = new Gson().toJson(results);
                 System.out.println(jsonStr);
@@ -343,7 +347,7 @@ public class CLI implements Runnable {
         }
     }
 
-    /***
+    /**
      * main method
      * @param args input of user
      */
