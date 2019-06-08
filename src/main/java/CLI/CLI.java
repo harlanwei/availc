@@ -19,7 +19,7 @@ import static Common.WeekdayNo.getDay;
 import static Common.WeekdayNo.getNowWeekday;
 
 public class CLI implements Runnable {
-    /***
+    /**
      * usageHelp must need a boolean variable,even this variable won't be used.
      */
     @Option(names = {"-h", "--help"}, usageHelp = true,
@@ -28,29 +28,31 @@ public class CLI implements Runnable {
 
     /**
      * Start in the headless mode means that the browser window would not be shown.
-     *this function doesn't need a boolean variable,but the option function need a parameter or there will be a exception thrown in the running process,so i write a parameter __ here.
+     * this function doesn't need a boolean variable,but the option function need a parameter or there will be a exception thrown in the running process,so i write a parameter __ here.
      */
     private boolean headless = true;
+
     @Option(names = {"--non-headless"}, arity = "0", description = "Start in the headless mode means that the browser window would not be shown. This option turns headless mode off.")
     private void setHeadlessMode(String __) {
         headless = false;
     }
 
-    /***
+    /**
      * record room or building information
      * if get the rooms information,the building information will be deprecated
      * learn this usage from the picocli document.
      */
     @ArgGroup(exclusive = false, multiplicity = "1..2")
-    private queryRooms inputroom;
+    private queryRooms inputRoom;
+
     static class queryRooms {
-        @Option(names = {"-b", "--building"}, arity = "1...*",split = ",", description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
+        @Option(names = {"-b", "--building"}, arity = "1...*", split = ",", description = "The code of the building, which should be in the format of [zs]-[0-9]+, e.g. x1 (Xueyuanlu Building 1), s3 (Shahe No.3 Teaching Buidling).")
         Set<String> building;
         @Option(names = {"-r", "--rome"}, arity = "1..*", split = ",", description = "value of classrooms")
         Set<String> rooms;
     }
 
-    /***
+    /**
      * get query weeks
      * default value the weekNo of now
      * this function will be called when get the -w option
@@ -58,6 +60,7 @@ public class CLI implements Runnable {
     private int weekStartNum;
     private int weekEndNum;
     private boolean isNowWeekNum = true;
+
     @Option(names = {"-w", "--week"}, arity = "0...2", split = ",", description = "value of week in this semester,if not input this value,it would be set this week,getting from the school website.")
     private void setWeekNum(int[] t) {
         if (t.length == 0)
@@ -80,6 +83,7 @@ public class CLI implements Runnable {
      */
     private boolean isSetDay = false;
     private String day = "";
+
     @Option(names = {"-d", "--day"}, arity = "0..1", description = "day of query, e.g. Sun, Mon.")
     private void Setday(@NotNull String day) {
         this.day = day.toLowerCase();
@@ -163,8 +167,9 @@ public class CLI implements Runnable {
      */
     private int showItemsNum;
 
-    /***
+    /**
      * get the limit of show results
+     *
      * @param t value of input
      */
     @Option(names = {"-l", "--limit"}, arity = "0..1", defaultValue = "5", description = " number of rooms to show, default value is 5")
@@ -190,11 +195,14 @@ public class CLI implements Runnable {
         showItemsNum = Integer.MAX_VALUE;
     }
 
-    //change query result to Json format data
+    /**
+     * change query result to Json format data
+     */
     private boolean shouldGetJson;
 
-    /***
+    /**
      * whether need get the json format data
+     *
      * @param tmp don't need a variable here
      */
     @Option(names = "--json", arity = "0", description = "get json data")
@@ -203,7 +211,7 @@ public class CLI implements Runnable {
         showAllRooms("");
     }
 
-    /***
+    /**
      * run the function
      * first : get input from args
      * then : run the query function
@@ -218,12 +226,11 @@ public class CLI implements Runnable {
             // run query function
             if (wasTimeSet)
                 throw new Exception("you can't select more than one option to set query time");
-            if (inputroom.rooms != null)
-                rooms = inputroom.rooms;
-            else
-            {
+            if (inputRoom.rooms != null)
+                rooms = inputRoom.rooms;
+            else {
                 Set<String> tmp;
-                for(String b:inputroom.building){
+                for (String b : inputRoom.building) {
                     tmp = p.getRoomsInTheBuilding(b);
                     rooms.addAll(tmp);
                 }
@@ -248,10 +255,9 @@ public class CLI implements Runnable {
                 int[] startAndEnd = getNowClassNo();
                 start = startAndEnd[0];
                 end = startAndEnd[1];
-            }else
-            {
-                if(start>end)
-                    throw new RuntimeException("Illegal parameters:the first parameter "+start+" shouldn't larger than the second parameter "+end);
+            } else {
+                if (start > end)
+                    throw new RuntimeException("Illegal parameters:the first parameter " + start + " shouldn't larger than the second parameter " + end);
             }
 
             // get Json data
@@ -274,11 +280,12 @@ public class CLI implements Runnable {
                 System.out.println(jsonStr);
             } else {
                 Weekday queryDay;
-                if (day.equals("")) {
+                if (day.equals(""))
                     queryDay = getNowWeekday();
-                } else
+                else {
                     // set default value
                     queryDay = getDay(day);
+                }
                 if (isNowWeekNum)
                     System.out.println("在本周" + queryDay + ":");
                 else {

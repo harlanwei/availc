@@ -2,9 +2,10 @@ package Common;
 
 import java.util.Calendar;
 
-//get and set option -d parameters
+/**
+ * get and set option -d parameters
+ */
 public class WeekdayNo {
-
     private static final Weekday[] DAY = {
             Weekday.Sunday,
             Weekday.Monday,
@@ -39,7 +40,7 @@ public class WeekdayNo {
         }
     }
 
-    /***
+    /**
      * Get day in a week, e.g. Sunday.
      */
     public static Weekday getNowWeekday() {

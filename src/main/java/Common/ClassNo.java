@@ -6,7 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- *convert time to classNo
+ * convert time to classNo
  */
 public class ClassNo {
 
@@ -15,13 +15,13 @@ public class ClassNo {
      * @param time value of input
      * @return date
      */
-    private static Date getTime(String time){
+    private static Date getTime(String time) {
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
         Date d;
-        try{
-            d= df.parse(time);
+        try {
+            d = df.parse(time);
             return d;
-        }catch (Exception e){
+        } catch (Exception e) {
             //this is impossible to throw an exception , so do nothing.
         }
         return null;
@@ -30,7 +30,7 @@ public class ClassNo {
     /***
      * store class time
      */
-    private static final Date[] classTime={
+    private static final Date[] classTime = {
             getTime("8:00"),
             getTime("8:45"),
             getTime("9:35"),
@@ -59,13 +59,13 @@ public class ClassNo {
      * besides these time above, return -1,because the class rooms are closed
      * @return num of class
      */
-    public static int[] getNowClassNo(){
+    public static int[] getNowClassNo() {
         int[] res = new int[2];
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
         Date nowDate = new Date();
-        try{
+        try {
             nowDate = df.parse(df.format(new Date()));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         Calendar date = Calendar.getInstance();
@@ -73,26 +73,46 @@ public class ClassNo {
         Calendar cpr = Calendar.getInstance();
         int len = classTime.length;
         int start = -1;
-        for(int i=0;i<len;i++){
+        for (int i = 0; i < len; i++) {
             cpr.setTime(classTime[i]);
-            if(date.before(cpr)){
-                start = i-1;
+            if (date.before(cpr)) {
+                start = i - 1;
                 break;
             }
         }
-        switch (start){
-            case 0: case 1:
-                res[0]=1;res[1]=2;break;
-            case 3: case 4: case 5:
-                res[0]=3;res[1]=5;break;
-            case 6: case 7:
-                res[0]=6;res[1]=7;break;
-            case 8: case 9: case 10:
-                res[0]=8;res[1]=10;break;
-            case 11:case 12:
-                res[0]=11;res[1]=12;break;
-            case 13: case 14:
-                res[0]=13;res[1]=14;break;
+        switch (start) {
+            case 0:
+            case 1:
+                res[0] = 1;
+                res[1] = 2;
+                break;
+            case 3:
+            case 4:
+            case 5:
+                res[0] = 3;
+                res[1] = 5;
+                break;
+            case 6:
+            case 7:
+                res[0] = 6;
+                res[1] = 7;
+                break;
+            case 8:
+            case 9:
+            case 10:
+                res[0] = 8;
+                res[1] = 10;
+                break;
+            case 11:
+            case 12:
+                res[0] = 11;
+                res[1] = 12;
+                break;
+            case 13:
+            case 14:
+                res[0] = 13;
+                res[1] = 14;
+                break;
         }
         return res;
     }
