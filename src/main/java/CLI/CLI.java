@@ -98,7 +98,7 @@ public class CLI implements Runnable {
      *the start and end values is used to record the query time,if not choose an option to set these values, we will set it to the latest time.
      * the range of these values is from 1 to 14.
      * function will be called when get the -t option
-     * @param t
+     * @param t value of input
      */
     @Option(names = {"-t", "--time"}, arity = "1...*", split = ",", description = "value of class num,range from 1-14")
     void setVarTime(int[] t) {
@@ -110,7 +110,7 @@ public class CLI implements Runnable {
 
     /***
      * if get the -am option, there is not need the int[] variable.
-     * @param __
+     * @param __ don't need a variable here
      */
     @Option(names = "-am", arity = "0", description = "this option means the query time is 1-5.")
     void setAmTime(int[] __) {
@@ -122,7 +122,7 @@ public class CLI implements Runnable {
 
     /***
      *if get the -pm option, there is not need the int[] variable.
-     * @param __
+     * @param __ don't need a variable here
      */
     @Option(names = "-pm", arity = "0", description = "this option means the query time is 6-10.")
     void setPmTime(int[] __) {
@@ -134,7 +134,7 @@ public class CLI implements Runnable {
 
     /***
      * if get the -ev option, there is not need the int[] variable.
-     * @param __
+     * @param __ don't need a variable here
      */
     @Option(names = "-ev", arity = "0", description = "this option means the query time is 11-14.")
     void setEvTime(int[] __) {
@@ -148,7 +148,7 @@ public class CLI implements Runnable {
     /***
      * For outputting classrooms available both in the afternoon and in the evening.
      * if get the -pmx,there is not need the int[] variable
-     * @param __
+     * @param __ don't need a variable here
      */
     @Option(names = "-pmx", arity = "0", description = "this option means the query time is 6-14")
     void setPmxTime(int[] __) {
@@ -165,7 +165,7 @@ public class CLI implements Runnable {
 
     /***
      * get the limit of show results
-     * @param t
+     * @param t value of input
      */
     @Option(names = {"-l", "--limit"}, arity = "0..1", defaultValue = "5", description = " number of rooms to show, default value is 5")
     private void setShowItemsNum(String t) {
@@ -183,7 +183,7 @@ public class CLI implements Runnable {
 
     /***
      * set the showItemsNum = max_value,but don't a variable to set showItemsNum ;
-     * @param __
+     * @param __ don't need a variable here
      */
     @Option(names = "--all", arity = "0", description = "get all the room information")
     private void showAllRooms(String __) {
@@ -195,7 +195,7 @@ public class CLI implements Runnable {
 
     /***
      * whether need get the json format data
-     * @param tmp
+     * @param tmp don't need a variable here
      */
     @Option(names = "--json", arity = "0", description = "get json data")
     private void setShouldGetJson(String tmp) {
@@ -214,7 +214,7 @@ public class CLI implements Runnable {
         try (Parser p = new Parser("mt16151056", "mengtao1219", this.headless)) {
             // stores query results
             Map<String, boolean[]> queryResult;
-            Set<String> rooms = new HashSet<String>();
+            Set<String> rooms = new HashSet<>();
             // run query function
             if (wasTimeSet)
                 throw new Exception("you can't select more than one option to set query time");
@@ -244,6 +244,16 @@ public class CLI implements Runnable {
                 roomResult.add(tmp);
             }
 
+            if (start == 0 && end == 0) {
+                int[] startAndEnd = getNowClassNo();
+                start = startAndEnd[0];
+                end = startAndEnd[1];
+            }else
+            {
+                if(start>end)
+                    throw new RuntimeException("Illegal parameters:the first parameter "+start+" shouldn't larger than the second parameter "+end);
+            }
+
             // get Json data
             if (shouldGetJson) {
                 Weekday queryDay;
@@ -251,17 +261,9 @@ public class CLI implements Runnable {
                     queryDay = getNowWeekday();
                 else
                     queryDay = getDay(day);
-                if (start == 0 && end == 0) {
-                    int startAndEnd[] = getNowClassNo();
-                    start = startAndEnd[0];
-                    end = startAndEnd[1];
-                }else
-                {
-                    if(start>end)
-                        throw new RuntimeException("Illegal parameters:the first parameter "+start+" shouldn't larger than the second parameter "+end);
-                }
 
-                Map<String, Boolean> results = new HashMap<String, Boolean>();
+
+                Map<String, Boolean> results = new HashMap<>();
                 //query result
                 for (Room r : roomResult) {
                     if (r.isAvailable(queryDay, start, end))
@@ -277,16 +279,6 @@ public class CLI implements Runnable {
                 } else
                     // set default value
                     queryDay = getDay(day);
-                if (start == 0 && end == 0) {
-                    // get default week number
-                    int[] startAndEnd = getNowClassNo();
-                    start = startAndEnd[0];
-                    end = startAndEnd[1];
-                }else
-                {
-                    if(start>end)
-                        throw new RuntimeException("Illegal parameters:the first parameter "+start+" shouldn't larger than the second parameter "+end);
-                }
                 if (isNowWeekNum)
                     System.out.println("在本周" + queryDay + ":");
                 else {
@@ -344,6 +336,10 @@ public class CLI implements Runnable {
         }
     }
 
+    /***
+     * main method
+     * @param args input of user
+     */
     public static void main(String[] args) {
         disableWarning();
         new CommandLine(new CLI()).execute(args);
