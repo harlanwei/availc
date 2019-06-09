@@ -108,9 +108,4 @@ class Cache {
         writer.write(new Gson().toJson(cache));
         this.isDirty = false;
     }
-
-    // todo Clear previous caches
-    void clear() {
-
-    }
 }

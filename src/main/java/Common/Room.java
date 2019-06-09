@@ -3,27 +3,25 @@ package Common;
 import java.util.Arrays;
 import java.util.Objects;
 
-
 public class Room {
     private String room;
-    //this array is used to record the state of room's availability.7*6, seven day in a week ,six long class in a day.
+
+    /**
+     * this array is used to record the state of room's availability.7*6, seven day in a week ,six long class in a day.
+     */
     private boolean[][] isAvailable;
 
     public String getName() {
         return room;
     }
 
-
     private boolean[][] getIsAvailable() {
         return isAvailable;
     }
 
-
-
-    /***
+    /**
      * set the information for the classrooms
      * short name of the building
-     * @param isAvailable
      * resize the boolean array
      */
     public Room(String room, boolean[] isAvailable) {
@@ -67,7 +65,7 @@ public class Room {
         }
     }
 
-    /***
+    /**
      * get the availability of room in the selected day and class
      * if the parameters is illegal, throw a IllegalArgumentException.
      */
@@ -110,7 +108,6 @@ public class Room {
 
     }
 
-    //override room equals and hashcode methods
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
