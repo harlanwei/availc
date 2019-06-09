@@ -83,15 +83,15 @@ public class ClassNo {
         switch (start){
             case 0: case 1:
                 res[0]=1;res[1]=2;break;
-            case 3: case 4: case 5:
+            case 2: case 3: case 4:
                 res[0]=3;res[1]=5;break;
-            case 6: case 7:
+            case 5: case 6:
                 res[0]=6;res[1]=7;break;
-            case 8: case 9: case 10:
+            case 7: case 8: case 9:
                 res[0]=8;res[1]=10;break;
-            case 11:case 12:
+            case 10:case 11:
                 res[0]=11;res[1]=12;break;
-            case 13: case 14:
+            case 12: case 13:
                 res[0]=13;res[1]=14;break;
         }
         return res;
